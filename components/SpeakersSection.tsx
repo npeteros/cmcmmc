@@ -1,5 +1,11 @@
 import { SPEAKERS } from "@/lib/speakers";
-import { Dialog, DialogTrigger, DialogTitle, DialogClose, DialogContent, } from "@/components/ui/dialog";
+import {
+  Dialog,
+  DialogTrigger,
+  DialogTitle,
+  DialogClose,
+  DialogContent,
+} from "@/components/ui/dialog";
 
 function Avatar({
   imgUrl,
@@ -62,9 +68,7 @@ function SpeakerDetails({
         <p className="text-xs font-bold uppercase tracking-widest text-[#56aeff]">
           {session}
         </p>
-        <DialogTitle className="text-xl text-[#1a2e5a]">
-          {name}
-        </DialogTitle>
+        <DialogTitle className="text-xl text-[#1a2e5a]">{name}</DialogTitle>
         <p className="text-sm text-gray-500">{role}</p>
       </div>
 
@@ -113,9 +117,8 @@ export default function SpeakersSection() {
   return (
     <section
       id="speakers"
-      className="py-8"
+      className="py-8 md:h-[75vh] h-full"
       style={{
-        height: "75vh",
         background:
           "linear-gradient(135deg, #eaf7f8 0%, #f5f9ff 50%, #fff8ee 100%)",
       }}
@@ -148,9 +151,7 @@ export default function SpeakersSection() {
                 </p>
                 <Dialog>
                   <DialogTrigger asChild>
-                    <div
-                      className="flex w-full items-start gap-4 rounded-xl border border-gray-100 bg-white p-5 text-left shadow-sm transition-transform hover:scale-[1.02] hover:shadow-md"
-                    >
+                    <div className="flex w-full items-start gap-4 rounded-xl border border-gray-100 bg-white p-5 text-left shadow-sm transition-transform hover:scale-[1.02] hover:shadow-md">
                       <Avatar size="lg" imgUrl={keynoteSpeaker.imgUrl} />
                       <div>
                         <p className="font-bold text-[#1a2e5a] text-base">
