@@ -21,25 +21,25 @@ export default function CTASection() {
         <div className="grid grid-cols-2 gap-4 w-full lg:w-auto">
           <Link
             href="/registration"
-            className="bg-[#56aeff] hover:bg-[#22959d] text-white font-bold text-sm uppercase tracking-wide px-6 py-4 rounded-full text-center transition-colors"
+            className="bg-[#56aeff] hover:bg-[#22959d] text-white font-bold text-sm uppercase tracking-wide px-6 py-4 rounded-full text-center transition-colors flex items-center justify-center"
           >
             Register Here
           </Link>
           <Link
             href="#program"
-            className="bg-[#56aeff] hover:bg-[#22959d] text-white font-bold text-sm uppercase tracking-wide px-6 py-4 rounded-full text-center transition-colors"
+            className="bg-[#56aeff] hover:bg-[#22959d] text-white font-bold text-sm uppercase tracking-wide px-6 py-4 rounded-full text-center transition-colors flex items-center justify-center"
           >
             View Congress Program
           </Link>
           <Link
             href="#faq"
-            className="bg-[#56aeff] hover:bg-[#22959d] text-white font-bold text-sm uppercase tracking-wide px-6 py-4 rounded-full text-center transition-colors"
+            className="bg-[#56aeff] hover:bg-[#22959d] text-white font-bold text-sm uppercase tracking-wide px-6 py-4 rounded-full text-center transition-colors flex items-center justify-center"
           >
             Frequently Asked Questions
           </Link>
           <Link
             href="#contact"
-            className="bg-[#56aeff] hover:bg-[#22959d] text-white font-bold text-sm uppercase tracking-wide px-6 py-4 rounded-full text-center transition-colors"
+            className="bg-[#56aeff] hover:bg-[#22959d] text-white font-bold text-sm uppercase tracking-wide px-6 py-4 rounded-full text-center transition-colors flex items-center justify-center"
           >
             Contact Us
           </Link>

@@ -2,6 +2,13 @@
 
 import Link from "next/link";
 import Image from "next/image";
+import {
+  Sheet,
+  SheetTrigger,
+  SheetContent,
+  SheetHeader,
+  SheetClose,
+} from "./ui/sheet";
 
 const navLinks = [
   { label: "About the Congress", href: "#about" },
@@ -36,12 +43,41 @@ export default function Navbar() {
           ))}
         </ul>
 
-        {/* Mobile menu button placeholder */}
-        <button className="md:hidden flex flex-col gap-1.5 p-2">
-          <span className="block w-6 h-0.5 bg-[#1a2e5a]" />
-          <span className="block w-6 h-0.5 bg-[#1a2e5a]" />
-          <span className="block w-6 h-0.5 bg-[#1a2e5a]" />
-        </button>
+        {/* Mobile menu (Sheet) */}
+        <Sheet>
+          <SheetTrigger asChild>
+            <button
+              className="md:hidden flex flex-col gap-1.5 p-2"
+              aria-label="Open menu"
+            >
+              <span className="block w-6 h-0.5 bg-[#1a2e5a]" />
+              <span className="block w-6 h-0.5 bg-[#1a2e5a]" />
+              <span className="block w-6 h-0.5 bg-[#1a2e5a]" />
+            </button>
+          </SheetTrigger>
+
+          <SheetContent side="right" className="md:hidden w-3/4 sm:max-w-sm" showCloseButton={false}>
+            <SheetHeader className="flex items-center justify-between p-4">
+              <Link href="/" className="flex items-center gap-3">
+                <Image src="/logo.png" alt="CM-CMMC Logo" width={150} height={150} />
+              </Link>
+            </SheetHeader>
+
+            <nav className="flex flex-col gap-4 p-4">
+              {navLinks.map((link) => (
+                <SheetClose asChild key={link.label}>
+                  <Link
+                    href={link.href}
+                    target={link.external ? "_blank" : undefined}
+                    className="text-sm font-semibold text-black uppercase tracking-wide hover:text-[#0091C0] transition-colors"
+                  >
+                    {link.label}
+                  </Link>
+                </SheetClose>
+              ))}
+            </nav>
+          </SheetContent>
+        </Sheet>
       </div>
     </nav>
   );

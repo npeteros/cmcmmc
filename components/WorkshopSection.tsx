@@ -1,69 +1,46 @@
-const workshops = [
-  {
-    session: "Breakout Session 1",
-    name: "Rev. Fr. Albert Garong, SSP",
-    role: 'Host of "The PadsCast"',
-    topic: "The Power of Voice: Crafting Meaningful Audio Content",
-    extra: '"The Storyteller\'s Toolkit: Writing & Interviewing"',
-  },
-  {
-    session: "Breakout Session 2",
-    name: "Annie Perez-Gallardo",
-    role: "UP Cebu Professor, ABS-CBN Regional Correspondent",
-    topic: "The Storyteller's Toolkit: Writing & Interviewing",
-    extra: "",
-  },
-  {
-    session: "Breakout Session 3",
-    name: "——————————",
-    role: "——————————",
-    topic: "Stories That Move: The Art of Video Storytelling",
-    extra: "",
-  },
-  {
-    session: "Breakout Session 4",
-    name: "Miko Mel C. Peñaloza",
-    role: "Actor, ABS-CBN Segment Assistant Director, Diocese of San Pablo",
-    topic: "BTS: The Production Process",
-    extra: "",
-  },
-  {
-    session: "Breakout Session 5",
-    name: "April Frances Ortigas",
-    role: "Web / UX Designer, Figma Specialist, Layout Artist, Digital Media Manager",
-    topic: "Visualizing Ideas: The Art of Graphics and Layouting",
-    extra: "",
-  },
-  {
-    session: "Breakout Session 6",
-    name: "Kia Abrera",
-    role: "Founder of Brave Creators Lab, Co-founder of Braveworks Inc.",
-    topic: "Think Before You Create: Cognitive Strategies for Engaging Content",
-    extra: "",
-  },
-];
+import { SPEAKERS } from "@/lib/speakers";
 
-function AvatarPlaceholder() {
+function Avatar({
+  imgUrl,
+  size = "md",
+}: {
+  imgUrl?: string;
+  size?: "md" | "lg";
+}) {
+  const dim = size === "lg" ? "w-16 h-16" : "w-12 h-12";
   return (
-    <div className="w-12 h-12 rounded-full bg-[#f0941430] border-2 border-[#f09414] flex items-center justify-center shrink-0">
-      <svg
-        viewBox="0 0 24 24"
-        fill="none"
-        className="w-5 h-5 text-[#f09414]"
-        stroke="currentColor"
-        strokeWidth={1.5}
-      >
-        <path
-          strokeLinecap="round"
-          strokeLinejoin="round"
-          d="M15.75 6a3.75 3.75 0 11-7.5 0 3.75 3.75 0 017.5 0zM4.501 20.118a7.5 7.5 0 0114.998 0A17.933 17.933 0 0112 21.75c-2.676 0-5.216-.584-7.499-1.632z"
+    <div
+      className={`${dim} rounded-full bg-[#f0941430] border-2 border-[#f09414] flex items-center justify-center shrink-0`}
+    >
+      {imgUrl ? (
+        <img
+          src={imgUrl}
+          alt="Avatar"
+          className="w-full h-full object-cover rounded-full"
         />
-      </svg>
+      ) : (
+        <svg
+          viewBox="0 0 24 24"
+          fill="none"
+          className="w-5 h-5 text-[#f09414]"
+          stroke="currentColor"
+          strokeWidth={1.5}
+        >
+          <path
+            strokeLinecap="round"
+            strokeLinejoin="round"
+            d="M15.75 6a3.75 3.75 0 11-7.5 0 3.75 3.75 0 017.5 0zM4.501 20.118a7.5 7.5 0 0114.998 0A17.933 17.933 0 0112 21.75c-2.676 0-5.216-.584-7.499-1.632z"
+          />
+        </svg>
+      )}
     </div>
   );
 }
 
 export default function WorkshopSection() {
+  const workshopSpeakers = SPEAKERS.filter((s) =>
+    s.session?.startsWith("Breakout Session"),
+  );
   return (
     <section className="py-16 bg-white" id="program">
       <div className="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8">
@@ -74,12 +51,12 @@ export default function WorkshopSection() {
         </div>
 
         <div className="grid sm:grid-cols-2 lg:grid-cols-3 gap-5">
-          {workshops.map((w) => (
+          {workshopSpeakers.map((w) => (
             <div
               key={w.session}
-              className="flex items-start gap-3 bg-gray-50 rounded-xl p-4 border border-gray-100"
+              className="flex items-start gap-3 bg-gray-50 rounded-xl p-4 border border-gray-100  hover:shadow-md hover:scale-[1.02] transition-transform cursor-pointer"
             >
-              <AvatarPlaceholder />
+              <Avatar imgUrl={w.imgUrl} />
               <div>
                 <p className="text-[10px] font-bold uppercase tracking-widest text-[#2aadb5] mb-0.5">
                   {w.session}
