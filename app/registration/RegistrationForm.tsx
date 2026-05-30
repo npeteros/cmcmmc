@@ -29,6 +29,13 @@ import { SPEAKERS } from "@/lib/speakers";
 import { day1Options, day2Options } from "@/lib/registration-options";
 import Image from "next/image";
 import { toast } from "sonner";
+import {
+  Dialog,
+  DialogContent,
+  DialogTitle,
+  DialogDescription,
+  DialogFooter,
+} from "@/components/ui/dialog";
 const MAX_FILE_SIZE = 5 * 1024 * 1024;
 const ACCEPTED_FILE_TYPES = [
   "image/jpeg",
@@ -349,6 +356,7 @@ function Stepper({ currentStep }: { currentStep: number }) {
 
 export default function RegistrationForm() {
   const [currentStep, setCurrentStep] = React.useState(0);
+  const [isDialogOpen, setIsDialogOpen] = React.useState(false);
   const form = useForm<RegistrationValues>({
     resolver: zodResolver(formSchema),
     defaultValues,
@@ -405,6 +413,7 @@ export default function RegistrationForm() {
       console.log("Registration submitted", result.submissionId);
       form.reset(defaultValues);
       setCurrentStep(0);
+      setIsDialogOpen(true);
     } catch (error) {
       const msg = error instanceof Error ? error.message : "Unable to submit registration.";
       toast.error(msg);
@@ -433,6 +442,21 @@ export default function RegistrationForm() {
         </div>
 
         <Stepper currentStep={currentStep} />
+
+        <Dialog open={isDialogOpen} onOpenChange={setIsDialogOpen}>
+          <DialogContent>
+            <DialogTitle>Registration Received</DialogTitle>
+            <DialogDescription>
+              <p>Thank you for signing up for the 2nd Cebu Metropolitan Catholic Mass Media Congress!</p>
+              <p className="mt-2">We will send a confirmation email within 2 weeks after receiving your registration. If our email does not appear in your Inbox, kindly check your Spam folder.</p>
+              <p className="mt-2">Don’t forget to like, follow, and subscribe to the official social media channels of the Archdiocese of Cebu.</p>
+              <p className="mt-1 font-semibold">We are @sugboanongsimbahan on Facebook, Instagram, X, YouTube, and Tiktok.</p>
+            </DialogDescription>
+            <DialogFooter>
+              <Button onClick={() => setIsDialogOpen(false)}>Close</Button>
+            </DialogFooter>
+          </DialogContent>
+        </Dialog>
 
         <div className="mt-8 rounded-2xl border border-slate-200/70 bg-white p-6 shadow-xl shadow-slate-200/40 md:p-10">
           <Form {...form}>
