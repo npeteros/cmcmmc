@@ -110,7 +110,7 @@ export const SPEAKERS: Speaker[] = [
     name: "Alex Rich",
     role: "National Lead Manager of Corporate Partnership and Development, Make-A-Wish America",
     session: "Plenary Session 3",
-    topic: "Income Generating Projects in the Church",
+    topic: "Sustainable Media for Mission and Ministry",
     imgUrl: "/speakers/alex-rich.jpg",
     speakerDescriptions: [
       {
