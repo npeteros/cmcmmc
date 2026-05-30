@@ -14,15 +14,15 @@ export default function FirstCongress() {
         {/* Image placeholder */}
         <div className="relative w-full max-w-lg mx-auto aspect-video rounded-xl overflow-hidden bg-[#1a2e5a]/10 border border-gray-200 flex flex-col items-center justify-center gap-2">
           <iframe
-            src="https://web.facebook.com/plugins/video.php?href=https%3A%2F%2Fweb.facebook.com%2Fsugboanongsimbahan%2Fvideos%2F1189786702307897%2F"
             width="560"
             height="315"
-            style={{ border: "none", overflow: "hidden" }}
-            scrolling="no"
+            src="https://www.youtube.com/embed/FBqyz41m15I?si=9TJ35m6hzfhJyLkB"
+            title="YouTube video player"
             frameBorder="0"
-            allow="autoplay; clipboard-write; encrypted-media; picture-in-picture; web-share"
+            allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share"
+            referrerPolicy="strict-origin-when-cross-origin"
             allowFullScreen={true}
-          ></iframe>
+          />
         </div>
       </div>
     </section>
