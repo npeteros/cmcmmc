@@ -2,6 +2,7 @@
 
 import Link from "next/link";
 import Image from "next/image";
+import { usePathname } from "next/navigation";
 import {
   Sheet,
   SheetTrigger,
@@ -19,11 +20,17 @@ const navLinks = [
 ];
 
 export default function Navbar() {
+  const pathname = usePathname();
+
+  if (pathname.startsWith("/admin") || pathname === "/login") {
+    return null;
+  }
+
   return (
     <nav className="sticky top-0 z-50 bg-white border-b border-gray-200 shadow-sm">
       <div className="max-w-full mx-auto px-4 sm:px-6 flex items-center justify-between h-[15vh]">
         {/* Logo */}
-        <Link href="/" className="flex items-center gap-3 shrink-0 max-w-[150px]">
+        <Link href="/" className="flex items-center gap-3 shrink-0 max-w-37.5">
           {/* Placeholder logo */}
           <Image src="/logo.png" alt="CM-CMMC Logo" width={200} height={200} />
         </Link>

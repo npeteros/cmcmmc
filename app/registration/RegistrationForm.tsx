@@ -3,7 +3,7 @@
 import * as React from "react";
 import { z } from "zod";
 import { zodResolver } from "@hookform/resolvers/zod";
-import { useForm } from "react-hook-form";
+import { useForm, useWatch } from "react-hook-form";
 
 import { cn } from "@/lib/utils";
 import { Button } from "@/components/ui/button";
@@ -26,7 +26,9 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 import { SPEAKERS } from "@/lib/speakers";
+import { day1Options, day2Options } from "@/lib/registration-options";
 import Image from "next/image";
+import { toast } from "sonner";
 const MAX_FILE_SIZE = 5 * 1024 * 1024;
 const ACCEPTED_FILE_TYPES = [
   "image/jpeg",
@@ -83,42 +85,6 @@ const shirtSizes = [
   "3XL",
   "4XL",
   "5XL",
-] as const;
-
-const day1Options = [
-  {
-    value: "day1-audio",
-    label: "The Power of Voice: Crafting Meaningful Audio Content",
-    speaker: "Rev. Fr. Albert Garong, SSP",
-  },
-  {
-    value: "day1-writing",
-    label: "The Storyteller's Toolkit: Writing & Interviewing",
-    speaker: "Ms. Annie Perez",
-  },
-  {
-    value: "day1-video",
-    label: "Stories That Move: The Art of Video Storytelling",
-    speaker: "Mr. Aubry Lerio",
-  },
-] as const;
-
-const day2Options = [
-  {
-    value: "day2-production",
-    label: "BTS: The Production Process",
-    speaker: "Mr. Miko Mel C. Peñaloza",
-  },
-  {
-    value: "day2-graphics",
-    label: "Visualizing Ideas: The Art of Graphics and Layouting",
-    speaker: "Ms. April Frances Ortigas",
-  },
-  {
-    value: "day2-cognitive",
-    label: "Think Before You Create: Cognitive Strategies for Engaging Content",
-    speaker: "Ms. Kia Abrera",
-  },
 ] as const;
 
 const day1WithImages = day1Options.map((option) => ({
@@ -337,14 +303,6 @@ function getStepFields(
   return ["paymentMode", "paymentProof"];
 }
 
-function createLoggableData(values: RegistrationValues) {
-  return {
-    ...values,
-    idUpload: values.idUpload?.[0]?.name ?? "",
-    paymentProof: values.paymentProof?.[0]?.name ?? "",
-  };
-}
-
 function Stepper({ currentStep }: { currentStep: number }) {
   return (
     <div className="rounded-2xl border border-white/60 bg-white/80 p-6 shadow-sm backdrop-blur">
@@ -396,10 +354,10 @@ export default function RegistrationForm() {
     defaultValues,
   });
 
-  const values = form.watch();
+  const values = useWatch({ control: form.control }) ?? defaultValues;
 
   const handleNext = async () => {
-    const fields = getStepFields(currentStep, values);
+    const fields = getStepFields(currentStep, values as RegistrationValues);
     const isValid = await form.trigger(fields, { shouldFocus: true });
 
     if (isValid) {
@@ -411,9 +369,47 @@ export default function RegistrationForm() {
     setCurrentStep((prev) => Math.max(prev - 1, 0));
   };
 
-  const onSubmit = (data: RegistrationValues) => {
-    const safeData = createLoggableData(data);
-    console.log("Registration submission", safeData);
+  const onSubmit = async (data: RegistrationValues) => {
+    try {
+
+      const formData = new FormData();
+
+      Object.entries(data).forEach(([key, value]) => {
+        if (value instanceof FileList) {
+          const file = value[0];
+
+          if (file) {
+            formData.append(key, file);
+          }
+
+          return;
+        }
+
+        formData.append(key, String(value ?? ""));
+      });
+
+      const response = await fetch("/api/registration", {
+        method: "POST",
+        body: formData,
+      });
+      const result = (await response.json()) as {
+        ok: boolean;
+        error?: string;
+        submissionId?: string;
+      };
+
+      if (!response.ok || !result.ok) {
+        throw new Error(result.error || "Failed to submit registration.");
+      }
+
+      console.log("Registration submitted", result.submissionId);
+      form.reset(defaultValues);
+      setCurrentStep(0);
+    } catch (error) {
+      const msg = error instanceof Error ? error.message : "Unable to submit registration.";
+      toast.error(msg);
+      console.error("Registration submit error:", error);
+    }
   };
 
   return (
@@ -1296,6 +1292,8 @@ export default function RegistrationForm() {
                 </section>
               )}
 
+              
+
               <div className="flex flex-col-reverse gap-3 sm:flex-row sm:items-center sm:justify-between">
                 <Button
                   type="button"
@@ -1310,7 +1308,9 @@ export default function RegistrationForm() {
                     Next
                   </Button>
                 ) : (
-                  <Button type="submit">Submit</Button>
+                  <Button type="submit" disabled={form.formState.isSubmitting}>
+                    {form.formState.isSubmitting ? "Submitting..." : "Submit"}
+                  </Button>
                 )}
               </div>
             </form>
