@@ -1,9 +1,9 @@
-interface SpeakerDescription {
+export interface SpeakerDescription {
   title: string;
   descriptions: string[];
 }
 
-interface Speaker {
+export interface Speaker {
   name: string;
   role: string;
   topic: string;
@@ -48,7 +48,7 @@ export const SPEAKERS: Speaker[] = [
   },
   {
     name: "Howie Severino",
-    role: "GMA Broadcast Journalist",
+    role: "Journalist, GMA-7",
     session: "Plenary Session 1",
     topic: '"To Work: Human Creativity in AI-Assisted Communication"',
     imgUrl: "/speakers/howie-severino.jpg",
@@ -149,6 +149,27 @@ export const SPEAKERS: Speaker[] = [
     topic: "The Storyteller's Toolkit: Writing & Interviewing",
     extra: "",
     imgUrl: "/speakers/annie-perez.jpg",
+    speakerDescriptions: [
+      {
+        title: "Background",
+        descriptions: [
+          "Annie Fe Genon Perez-Gallardo is an Assistant Professor of Communication and Journalism at the University of the Philippines Cebu and a Multimedia Correspondent for ABS-CBN News.",
+          "She earned her Master of Arts in Journalism from the University of the Philippines Diliman, where she received the Dean's Medal for Academic Excellence, and graduated Magna Cum Laude and Class Valedictorian from UP Cebu.",
+          "With over a decade of experience in journalism, broadcasting, and media education, she has presented research at international conferences and received multiple recognitions from the Globe Media Excellence Awards for her journalism and multimedia storytelling.",
+        ],
+      },
+      {
+        title: "Professional Credentials",
+        descriptions: [
+          "Assistant Professor of Communication and Journalism at University of the Philippines Cebu, teaching journalism, multimedia production, broadcasting, and communication courses.",
+          "Multimedia Correspondent for ABS-CBN News and former News Operations Specialist, Producer, Director, and Executive Producer at ABS-CBN Cebu, with more than a decade of experience in journalism, broadcast production, and news reporting.",
+          "Holds a Master of Arts in Journalism from University of the Philippines Diliman, where she received the Dean's Medal for Academic Excellence, and graduated Magna Cum Laude and Class Valedictorian with a Bachelor of Arts in Mass Communication from University of the Philippines Cebu.",
+          "Published researcher and presenter at national and international conferences, including the International Association for Media and Communication Research, the Asian Congress for Media and Communication, and the Journalism Studies Association of the Philippines.",
+          "Author of peer-reviewed studies on journalism, media authenticity, and news production published in regional and national scholarly journals.",
+          "Recipient of multiple journalism honors, including First Place, Best Social Media Video and Second Place, Best TV News Report at the 2025 Globe Media Excellence Awards.",
+        ],
+      },
+    ],
   },
   {
     session: "Breakout Session 3",
@@ -162,7 +183,7 @@ export const SPEAKERS: Speaker[] = [
         title: "Recognitions and Awards",
         descriptions: [
           'Director, "Rosaryo" - Best Short Film, Cebu Archdiocesan Mass Media Awards',
-          'DDirector of Photography, "Bad Elements" &ndash; Best Picture and Best Cinematography, Oroquita Film Festival',
+          'Director of Photography, "Bad Elements" &ndash; Best Picture and Best Cinematography, Oroquita Film Festival',
           "Director of Photography of “Bad Elements” &ndash; Top 5 Finalist, FNF Philippines",
           "Director, “Eyeglasses” - Finalist, Sinulog Short Film Festival",
           "Director, “Before Crossing” - Finalist, Sinulog Short Film Festival",
@@ -175,7 +196,7 @@ export const SPEAKERS: Speaker[] = [
   {
     session: "Breakout Session 4",
     name: "Miko Mel C. Peñaloza",
-    role: "Actor, ABS-CBN Segment Assistant Director, Diocese of San Pablo",
+    role: "Actor, Former ABS-CBN Segment Assistant Director, Diocese of San Pablo",
     topic: "BTS: The Production Process",
     extra: "",
     imgUrl: "/speakers/miko-penaloza.jpg",
@@ -229,7 +250,7 @@ export const SPEAKERS: Speaker[] = [
           "In October 2024, Kia earned a global certification in applied neuroscience, receiving her Professional Neuroplastician credential. This formal training deepened her long-standing practice of integrating neuromarketing, consumer neuroscience, and behavior change into strategy, communication, and personal development work. Today, she applies neuroplasticity principles not only in marketing, but also in leadership clarity, team dynamics, and individual growth.",
           "Her work and insights have been featured across major media platforms, including ANC Business Roadshow, CNN Philippines, Rappler, Adobo Magazine, GMA Lifestyle, and When In Manila.",
           "Kia has worked with a wide range of organizations, including USAID, The Futur, Coca-Cola, Shell, and Toyota, among others. She is also a professor at Meridian International College, where she teaches Psychology of Marketing and Market Research & Consumer Behavior.",
-          "At the core of Kia&apos;s work is a simple conviction: clarity precedes performance. She continues her mission of helping people protect their thinking, rebuild trust in their minds, and use understanding—not pressure—as the foundation for meaningful growth."
+          "At the core of Kia&apos;s work is a simple conviction: clarity precedes performance. She continues her mission of helping people protect their thinking, rebuild trust in their minds, and use understanding—not pressure—as the foundation for meaningful growth.",
         ],
       },
     ],

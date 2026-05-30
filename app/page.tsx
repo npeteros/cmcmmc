@@ -14,7 +14,7 @@ import Navbar from '../components/Navbar'
 import HeroSection from '../components/HeroSection'
 import AboutSection from '../components/AboutSection'
 import SpeakersSection from '../components/SpeakersSection'
-import WorkshopSection from '../components/WorkshopSection'
+import BreakoutSection from '../components/BreakoutSection'
 import FirstCongress from '../components/FirstCongress'
 import CTASection from '../components/CTASection'
 import Footer from '../components/Footer'
@@ -105,7 +105,7 @@ export default function Page() {
         <HeroSection />
         <AboutSection />
         <SpeakersSection />
-        <WorkshopSection />
+        <BreakoutSection />
         <FirstCongress />
         <CTASection />
       </main>

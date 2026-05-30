@@ -11,9 +11,9 @@ import {
 } from "./ui/sheet";
 
 const navLinks = [
-  { label: "About the Congress", href: "#about" },
-  { label: "Speakers", href: "#speakers" },
-  { label: "Program", href: "#program" },
+  { label: "About the Congress", href: "/#about" },
+  { label: "Speakers", href: "/#speakers" },
+  { label: "Program", href: "/#program" },
   { label: "Registration", href: "/registration" },
   { label: "RCAC Website", href: "https://thearchdioceseofcebu.com/", external: true },
 ];

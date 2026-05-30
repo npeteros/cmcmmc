@@ -3,7 +3,7 @@ import Link from "next/link";
 
 export default function HeroSection() {
   return (
-    <section className="relative w-full h-[420px] sm:h-[100vh] overflow-hidden">
+    <section className="relative w-full md:h-screen overflow-hidden">
       {/* Placeholder hero image */}
       <div className="absolute inset-0 bg-[url('/hero.jpg')] bg-cover bg-center opacity-60 z-0" />
 

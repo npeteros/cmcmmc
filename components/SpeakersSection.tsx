@@ -1,11 +1,7 @@
 import { SPEAKERS } from "@/lib/speakers";
-import {
-  Dialog,
-  DialogTrigger,
-  DialogTitle,
-  DialogClose,
-  DialogContent,
-} from "@/components/ui/dialog";
+import { Dialog, DialogTrigger, DialogContent } from "@/components/ui/dialog";
+import SpeakerDetails from "./SpeakerDetails";
+import { useMemo } from "react";
 
 function Avatar({
   imgUrl,
@@ -14,7 +10,7 @@ function Avatar({
   imgUrl?: string;
   size?: "md" | "lg";
 }) {
-  const dim = size === "lg" ? "w-16 h-16" : "w-12 h-12";
+  const dim = size === "lg" ? "size-24" : "size-16";
   return (
     <div
       className={`${dim} rounded-full bg-[#f0941430] border-2 border-[#f09414] flex items-center justify-center shrink-0`}
@@ -44,80 +40,20 @@ function Avatar({
   );
 }
 
-function SpeakerDetails({
-  name,
-  role,
-  session,
-  topic,
-  extra,
-  speakerDescriptions,
-}: {
-  name: string;
-  role: string;
-  session: string;
-  topic: string;
-  extra?: string;
-  speakerDescriptions?: {
-    title: string;
-    descriptions: string[];
-  }[];
-}) {
-  return (
-    <div className="space-y-5">
-      <div className="space-y-2">
-        <p className="text-xs font-bold uppercase tracking-widest text-[#56aeff]">
-          {session}
-        </p>
-        <DialogTitle className="text-xl text-[#1a2e5a]">{name}</DialogTitle>
-        <p className="text-sm text-gray-500">{role}</p>
-      </div>
-
-      <div className="rounded-xl bg-[#f8fbff] p-4 border border-gray-100">
-        <p className="text-xs font-bold uppercase tracking-widest text-gray-400 mb-2">
-          Topic
-        </p>
-        <p className="text-sm text-gray-700 italic">{topic}</p>
-        {extra ? <p className="mt-3 text-sm text-gray-600">{extra}</p> : null}
-      </div>
-
-      {speakerDescriptions?.length ? (
-        <div className="space-y-4 max-h-[50vh] overflow-y-auto pr-1">
-          {speakerDescriptions.map((section) => (
-            <div key={section.title} className="space-y-2">
-              <h3 className="text-sm font-bold uppercase tracking-widest text-[#2aadb5]">
-                {section.title}
-              </h3>
-              <div className="space-y-2 text-sm text-gray-700 leading-relaxed">
-                {section.descriptions.map((description) => (
-                  <p key={description}>{description}</p>
-                ))}
-              </div>
-            </div>
-          ))}
-        </div>
-      ) : null}
-
-      <DialogClose asChild>
-        <button
-          type="button"
-          className="inline-flex h-10 items-center justify-center rounded-full bg-[#56aeff] px-5 text-sm font-bold text-white transition-colors hover:bg-[#3e98ec]"
-        >
-          Close
-        </button>
-      </DialogClose>
-    </div>
-  );
-}
-
 export default function SpeakersSection() {
-  const keynoteSpeaker = SPEAKERS.find((s) => s.session === "Keynote")!;
-  const plenarySpeakers = SPEAKERS.filter((s) =>
-    s.session?.startsWith("Plenary Session"),
+  const keynoteSpeaker = useMemo(
+    () => SPEAKERS.find((s) => s.session === "Keynote"),
+    [],
   );
+  const plenarySpeakers = useMemo(
+    () => SPEAKERS.filter((s) => s.session?.startsWith("Plenary Session")),
+    [],
+  );
+
   return (
     <section
       id="speakers"
-      className="py-8 md:h-[75vh] h-full"
+      className="py-8 md:h-screen"
       style={{
         background:
           "linear-gradient(135deg, #eaf7f8 0%, #f5f9ff 50%, #fff8ee 100%)",
@@ -151,29 +87,26 @@ export default function SpeakersSection() {
                 </p>
                 <Dialog>
                   <DialogTrigger asChild>
-                    <div className="flex w-full items-start gap-4 rounded-xl border border-gray-100 bg-white p-5 text-left shadow-sm transition-transform hover:scale-[1.02] hover:shadow-md">
-                      <Avatar size="lg" imgUrl={keynoteSpeaker.imgUrl} />
+                    <div className="flex w-full items-start gap-4 rounded-xl border border-gray-100 bg-white p-5 text-left shadow-sm transition-transform hover:scale-[1.02] hover:shadow-md cursor-pointer">
+                      <Avatar size="lg" imgUrl={keynoteSpeaker?.imgUrl} />
                       <div>
                         <p className="font-bold text-[#1a2e5a] text-base">
-                          {keynoteSpeaker.name}
+                          {keynoteSpeaker!.name}
                         </p>
                         <p className="text-xs text-gray-500 mb-2">
-                          {keynoteSpeaker.role}
+                          {keynoteSpeaker!.role}
                         </p>
                         <p className="text-sm text-gray-700 italic">
-                          {keynoteSpeaker.topic}
+                          {keynoteSpeaker!.topic}
+                        </p>
+                        <p className="mt-3 inline-flex items-center gap-1 text-[11px] font-semibold text-[#2aadb5]">
+                          Click for more info <span aria-hidden="true">›</span>
                         </p>
                       </div>
                     </div>
                   </DialogTrigger>
-                  <DialogContent>
-                    <SpeakerDetails
-                      name={keynoteSpeaker.name}
-                      role={keynoteSpeaker.role}
-                      session={keynoteSpeaker.session}
-                      topic={keynoteSpeaker.topic}
-                      speakerDescriptions={keynoteSpeaker.speakerDescriptions}
-                    />
+                  <DialogContent className="min-w-[80vw] max-h-[80vh] overflow-y-auto">
+                    <SpeakerDetails speaker={keynoteSpeaker!} />
                   </DialogContent>
                 </Dialog>
               </div>
@@ -183,14 +116,11 @@ export default function SpeakersSection() {
                 <p className="text-xs font-bold uppercase tracking-widest text-gray-400 mb-4">
                   Plenary Sessions
                 </p>
-                <div className="grid sm:grid-cols-3 gap-4">
+                <div className="grid md:grid-cols-3 gap-4">
                   {plenarySpeakers.map((s) => (
                     <Dialog key={s.name}>
                       <DialogTrigger asChild>
-                        <button
-                          type="button"
-                          className="flex w-full flex-col gap-3 rounded-xl border border-gray-100 bg-white p-5 text-left shadow-sm transition-transform hover:scale-[1.02] hover:shadow-md"
-                        >
+                        <div className="flex w-full flex-col gap-3 rounded-xl border border-gray-100 bg-white p-5 text-left shadow-sm transition-transform hover:scale-[1.02] hover:shadow-md cursor-pointer">
                           <div className="flex items-start gap-3">
                             <Avatar imgUrl={s.imgUrl} />
                             <div>
@@ -208,17 +138,14 @@ export default function SpeakersSection() {
                           <p className="text-xs text-gray-600 italic border-t border-gray-100 pt-3">
                             {s.topic}
                           </p>
-                        </button>
+                          <p className="text-[11px] font-semibold text-[#2aadb5]">
+                            Click for more info{" "}
+                            <span aria-hidden="true">›</span>
+                          </p>
+                        </div>
                       </DialogTrigger>
-                      <DialogContent>
-                        <SpeakerDetails
-                          name={s.name}
-                          role={s.role}
-                          session={s.session}
-                          topic={s.topic}
-                          extra={s.extra}
-                          speakerDescriptions={s.speakerDescriptions}
-                        />
+                      <DialogContent className="min-w-[80vw] max-h-[80vh] overflow-y-auto">
+                        <SpeakerDetails speaker={s} />
                       </DialogContent>
                     </Dialog>
                   ))}
