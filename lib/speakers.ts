@@ -47,7 +47,7 @@ export const SPEAKERS: Speaker[] = [
     ],
   },
   {
-    name: "Howie Severino",
+    name: "Mr. Howie Severino",
     role: "Journalist, GMA-7",
     session: "Plenary Session 1",
     topic: '"To Work: Human Creativity in AI-Assisted Communication"',
@@ -81,7 +81,7 @@ export const SPEAKERS: Speaker[] = [
     ],
   },
   {
-    name: "Gretchen Ho",
+    name: "Ms. Gretchen Ho",
     role: "Broadcaster, journalist, athlete",
     session: "Plenary Session 2",
     topic: '"To Take Care: Truth in the Age of Deepfakes"',
@@ -107,7 +107,7 @@ export const SPEAKERS: Speaker[] = [
     ],
   },
   {
-    name: "Alex Rich",
+    name: "Ms. Alex Rich",
     role: "National Lead Manager of Corporate Partnership and Development, Make-A-Wish America",
     session: "Plenary Session 3",
     topic: "Sustainable Media for Mission and Ministry",
@@ -144,7 +144,7 @@ export const SPEAKERS: Speaker[] = [
   },
   {
     session: "Breakout Session 2",
-    name: "Annie Perez-Gallardo",
+    name: "Ms. Annie Perez",
     role: "UP Cebu Professor, ABS-CBN Regional Correspondent",
     topic: "The Storyteller's Toolkit: Writing & Interviewing",
     extra: "",
@@ -173,7 +173,7 @@ export const SPEAKERS: Speaker[] = [
   },
   {
     session: "Breakout Session 3",
-    name: "Aubry Lerio",
+    name: "Mr. Aubry Lerio",
     role: "Founder, aFilm PH",
     topic: "Stories That Move: The Art of Video Storytelling",
     extra: "",
@@ -195,7 +195,7 @@ export const SPEAKERS: Speaker[] = [
   },
   {
     session: "Breakout Session 4",
-    name: "Miko Mel C. Peñaloza",
+    name: "Mr. Miko Mel C. Peñaloza",
     role: "Actor, Former ABS-CBN Segment Assistant Director, Diocese of San Pablo",
     topic: "BTS: The Production Process",
     extra: "",
@@ -203,7 +203,7 @@ export const SPEAKERS: Speaker[] = [
   },
   {
     session: "Breakout Session 5",
-    name: "April Frances Ortigas",
+    name: "Ms. April Frances Ortigas",
     role: "Web / UX Designer, Figma Specialist, Layout Artist, Digital Media Manager",
     topic: "Visualizing Ideas: The Art of Graphics and Layouting",
     extra: "",
@@ -224,7 +224,7 @@ export const SPEAKERS: Speaker[] = [
   },
   {
     session: "Breakout Session 6",
-    name: "Kia Abrera",
+    name: "Ms. Kia Abrera",
     role: "Founder of Brave Creators Lab, Co-founder of Braveworks Inc.",
     topic: "Think Before You Create: Cognitive Strategies for Engaging Content",
     extra: "",

@@ -10,7 +10,6 @@ import {
   siteName,
   siteUrl,
 } from '../lib/seo'
-import Navbar from '../components/Navbar'
 import HeroSection from '../components/HeroSection'
 import AboutSection from '../components/AboutSection'
 import SpeakersSection from '../components/SpeakersSection'
@@ -100,7 +99,6 @@ export default function Page() {
         type="application/ld+json"
         dangerouslySetInnerHTML={{ __html: JSON.stringify(structuredData) }}
       />
-      <Navbar />
       <main>
         <HeroSection />
         <AboutSection />
