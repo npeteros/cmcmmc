@@ -6,16 +6,16 @@ export default function FirstCongress() {
           Relive the fun and learnings from the first CM-CMMC
         </h2>
         <p className="text-gray-600 text-sm mb-8 max-w-2xl mx-auto">
-          More than 350 participants from the Archdiocese of Cebu and
+          More than 400 participants from the Archdiocese of Cebu and
           neighboring dioceses joined the first Cebu Metropolitan Catholic Mass
           Media Congress (CM-CMMC) last September 28, 2024.
         </p>
 
         {/* Image placeholder */}
-        <div className="relative w-full max-w-lg mx-auto aspect-video rounded-xl overflow-hidden bg-[#1a2e5a]/10 border border-gray-200 flex flex-col items-center justify-center gap-2">
+        <div className="relative w-full max-w-7xl mx-auto aspect-video rounded-xl overflow-hidden bg-[#1a2e5a]/10 border border-gray-200 flex flex-col items-center justify-center gap-2">
           <iframe
-            width="560"
-            height="315"
+            width="100%"
+            height="100%"
             src="https://www.youtube.com/embed/FBqyz41m15I?si=9TJ35m6hzfhJyLkB"
             title="YouTube video player"
             frameBorder="0"
