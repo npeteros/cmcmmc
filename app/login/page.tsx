@@ -1,7 +1,7 @@
 import type { Metadata } from "next";
 import { redirect } from "next/navigation";
 
-import { ADMIN_PASSWORD, ADMIN_USERNAME, isAdminSessionActive } from "@/lib/admin-auth";
+import { isAdminSessionActive } from "@/lib/admin-auth";
 
 import LoginForm from "./LoginForm";
 
@@ -30,12 +30,6 @@ export default async function LoginPage() {
               <p className="mt-4 max-w-md text-sm leading-6 text-white/75">
                 Review incoming registrations, inspect uploaded files, and export records from one protected place.
               </p>
-            </div>
-
-            <div className="rounded-2xl border border-white/10 bg-white/10 p-5 text-sm text-white/80">
-              <p className="font-semibold text-white">Demo credentials</p>
-              <p className="mt-2">Username: {ADMIN_USERNAME}</p>
-              <p>Password: {ADMIN_PASSWORD}</p>
             </div>
           </section>
 

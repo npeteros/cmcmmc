@@ -33,7 +33,8 @@ export default function CTASection() {
             View Congress Program
           </Link>
           <Link
-            href="#faq"
+            href="/2nd-CM-CMMC-Congress-Primer-v1.pdf"
+            target="_blank"
             className="bg-[#56aeff] hover:bg-[#22959d] text-white font-bold text-sm uppercase tracking-wide px-6 py-4 rounded-lg text-center transition-colors flex items-center justify-center"
           >
             Frequently Asked Questions

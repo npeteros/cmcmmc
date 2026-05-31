@@ -4,8 +4,8 @@ import { cookies } from "next/headers";
 
 export const ADMIN_SESSION_COOKIE = "cmcmmc-admin-session";
 export const ADMIN_SESSION_TOKEN = "authenticated";
-export const ADMIN_USERNAME = process.env.ADMIN_USERNAME ?? "admin";
-export const ADMIN_PASSWORD = process.env.ADMIN_PASSWORD ?? "admin123";
+export const ADMIN_USERNAME = process.env.ADMIN_USERNAME;
+export const ADMIN_PASSWORD = process.env.ADMIN_PASSWORD;
 
 export async function isAdminSessionActive() {
   const cookieStore = await cookies();
