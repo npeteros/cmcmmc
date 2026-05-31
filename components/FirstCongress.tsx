@@ -1,6 +1,6 @@
 export default function FirstCongress() {
   return (
-    <section className="py-16 bg-gray-50 md:h-screen">
+    <section className="py-16 bg-gray-50 lg:h-screen">
       <div className="h-full max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 text-center flex flex-col items-center justify-center gap-6">
         <h2 className="text-2xl font-bold text-[#1a2e5a] mb-3">
           Relive the fun and learnings from the first CM-CMMC

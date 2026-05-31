@@ -53,7 +53,7 @@ export default function SpeakersSection() {
   return (
     <section
       id="speakers"
-      className="py-8 md:h-screen"
+      className="py-8 lg:h-screen"
       style={{
         background:
           "linear-gradient(135deg, #eaf7f8 0%, #f5f9ff 50%, #fff8ee 100%)",

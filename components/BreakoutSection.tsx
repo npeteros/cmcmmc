@@ -44,7 +44,7 @@ export default function BreakoutSection() {
     s.session?.startsWith("Breakout Session"),
   );
   return (
-    <section className="py-16 bg-white md:h-screen" id="program">
+    <section className="py-16 bg-white lg:h-screen" id="program">
       <div className="h-full max-w-6xl mx-auto px-4 sm:px-6 lg:px-8 flex flex-col justify-center">
         <div className="flex justify-center mb-12">
           <div className="bg-[#56aeff] text-white text-sm font-bold uppercase tracking-widest px-8 py-2 rounded-full">

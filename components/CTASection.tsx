@@ -2,7 +2,7 @@ import Link from "next/link";
 
 export default function CTASection() {
   return (
-    <section className="py-16 relative overflow-hidden md:h-screen">
+    <section className="py-16 relative overflow-hidden lg:h-screen">
       <div
         className="absolute inset-0 z-0"
         style={{
