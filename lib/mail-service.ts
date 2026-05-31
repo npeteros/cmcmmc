@@ -30,8 +30,8 @@ export async function sendRegistrationConfirmationEmail({
 
   const transporter = nodemailer.createTransport({
     host: "smtp.gmail.com",
-    port: 587,
-    secure: false,
+    port: 465,
+    secure: true,
     auth: {
       user: username,
       pass: password,
@@ -39,10 +39,16 @@ export async function sendRegistrationConfirmationEmail({
   });
 
   try {
+    // verify connection configuration to catch auth/network issues early
+    await transporter.verify();
+
+    const textBody = `Dear ${recepientName},\n\nThank you for signing up for the 2nd Cebu Metropolitan Catholic Mass Media Congress.\n\nOur team is currently reviewing the information you provided in the registration form. We will send you an update on the status of your registration within the next two (2) weeks.\n\nFor clarifications in the future, you can send an email to cm.catholicmassmediacongress@gmail.com.\n\nDon't forget to like, follow, and subscribe to the official social media accounts of the Archdiocese of Cebu, @sugboanongsimbahan, on Facebook, Instagram, X, YouTube, and Tiktok. Visit the Archdiocese's official website: thearchdioceseofcebu.com.\n\nThank you and God bless!`;
+
     await transporter.sendMail({
-      from: username,
+      from: `no-reply <${username}>`,
       to: recepientEmail,
       subject: `[CMCMMC] Initial Registration Confirmation`,
+      text: textBody,
       html: `Dear ${recepientName},<br><br>
 
 Thank you for signing up for the 2nd Cebu Metropolitan Catholic Mass Media Congress.<br><br>
@@ -55,6 +61,11 @@ Don't forget to like, follow, and subscribe to the official social media account
 
 Thank you and God bless!`,
       replyTo: username,
+      envelope: { from: username, to: recepientEmail },
+      headers: {
+        "List-Unsubscribe": `<mailto:${username}?subject=unsubscribe>`,
+        "X-Priority": "3",
+      },
     });
     return {
       success: true,
@@ -96,8 +107,8 @@ export async function sendContactUsEmail(formData: FormData) {
 
   const transporter = nodemailer.createTransport({
     host: "smtp.gmail.com",
-    port: 587,
-    secure: false,
+    port: 465,
+    secure: true,
     auth: {
       user: username,
       pass: password,
@@ -105,12 +116,18 @@ export async function sendContactUsEmail(formData: FormData) {
   });
 
   try {
+    await transporter.verify();
+
+    const contactText = `Name: ${senderName}\nEmail: ${senderEmail}\n\n${senderMessage}`;
+
     await transporter.sendMail({
-      from: senderEmail,
+      from: `no-reply <${username}>`,
       to: username,
       subject: `New message from ${senderName}`,
-      text: `Name: ${senderName}\nEmail: ${senderEmail}\n\n${senderMessage}`,
+      text: contactText,
+      html: contactText.replace(/\n/g, "<br>"),
       replyTo: senderEmail,
+      envelope: { from: username, to: username },
     });
     return { success: true, message: "Email sent successfully!" };
   } catch (error) {
