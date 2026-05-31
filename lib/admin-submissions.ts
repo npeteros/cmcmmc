@@ -18,6 +18,7 @@ export type Submission = {
   shirtSize: string;
   organizationName: string;
   archdiocese: string;
+  archdioceseOther: string;
   parishName: string;
   parishAddress: string;
   roleInMinistry: string;
@@ -34,6 +35,7 @@ export type Submission = {
   day2Session: string;
   accommodation: "avail" | "self";
   paymentMode: "GCash" | "BDO";
+  transactionNumber: string;
   idUploadName: string;
   paymentProofName: string;
   idUploadPath?: string;
@@ -57,6 +59,7 @@ export const mockSubmissions: Submission[] = [
     shirtSize: "XL",
     organizationName: "Diocesan Media Ministry",
     archdiocese: "Archdiocese of Cebu",
+    archdioceseOther: "",
     parishName: "Saint Joseph Parish",
     parishAddress: "Cebu City",
     roleInMinistry: "Spiritual Director",
@@ -73,6 +76,7 @@ export const mockSubmissions: Submission[] = [
     day2Session: "day2-production",
     accommodation: "avail",
     paymentMode: "GCash",
+    transactionNumber: "GCASH-001",
     idUploadName: "albert-garong-id.pdf",
     paymentProofName: "gcash-receipt-albert.pdf",
   },
@@ -92,6 +96,7 @@ export const mockSubmissions: Submission[] = [
     shirtSize: "M",
     organizationName: "",
     archdiocese: "",
+    archdioceseOther: "",
     parishName: "",
     parishAddress: "",
     roleInMinistry: "",
@@ -108,6 +113,7 @@ export const mockSubmissions: Submission[] = [
     day2Session: "day2-graphics",
     accommodation: "self",
     paymentMode: "BDO",
+    transactionNumber: "BDO-002",
     idUploadName: "april-ortigas-id.png",
     paymentProofName: "bdo-transfer-april.png",
   },
@@ -127,6 +133,7 @@ export const mockSubmissions: Submission[] = [
     shirtSize: "L",
     organizationName: "",
     archdiocese: "",
+    archdioceseOther: "",
     parishName: "",
     parishAddress: "",
     roleInMinistry: "",
@@ -143,6 +150,7 @@ export const mockSubmissions: Submission[] = [
     day2Session: "day2-cognitive",
     accommodation: "avail",
     paymentMode: "GCash",
+    transactionNumber: "GCASH-003",
     idUploadName: "aubry-lerio-id.webp",
     paymentProofName: "gcash-proof-aubry.pdf",
   },
@@ -190,33 +198,82 @@ export function buildSubmissionCsv(submissions: Submission[]) {
     "ID",
     "Submitted At",
     "Status",
-    "Name",
-    "Affiliation",
-    "Organization",
+    "Title",
+    "First Name",
+    "Middle Name",
+    "Surname",
+    "Congregation",
     "Email",
     "Mobile",
+    "Complete Address",
+    "Shirt Size",
+    "Affiliation",
+    "Organization",
+    "Archdiocese",
+    "Archdiocese (Other)",
+    "Parish name",
+    "Parish address",
+    "Role in ministry",
+    "Role in ministry (Other)",
+    "Province",
+    "School name",
+    "School address",
+    "Designation",
+    "Designation (Other)",
+    "Company / Organization",
+    "Company address",
+    "Position / Designation",
     "Day 1 Session",
     "Day 2 Session",
     "Accommodation",
     "Payment Mode",
+    "Transaction Number",
+    "ID upload name",
+    "Payment proof name",
   ];
 
   const rows = submissions.map((submission) => [
     submission.id,
     formatSubmissionDate(submission.submittedAt),
     submission.status,
-    getSubmissionDisplayName(submission),
-    getAffiliationLabel(submission.affiliationType),
-    getSubmissionOrganization(submission),
+    submission.title,
+    submission.firstName,
+    submission.middleName,
+    submission.surname,
+    submission.congregation,
     submission.email,
     submission.mobile,
+    submission.completeAddress,
+    submission.shirtSize,
+    getAffiliationLabel(submission.affiliationType),
+    getSubmissionOrganization(submission),
+    // Parish-specific
+    submission.affiliationType === "parish" ? submission.archdiocese : "",
+    submission.affiliationType === "parish" ? submission.archdioceseOther : "",
+    submission.affiliationType === "parish" ? submission.parishName : "",
+    submission.affiliationType === "parish" ? submission.parishAddress : "",
+    submission.affiliationType === "parish" ? submission.roleInMinistry : "",
+    submission.affiliationType === "parish" ? submission.roleInMinistryOther : "",
+    // School-specific
+    submission.affiliationType === "school" ? submission.province : "",
+    submission.affiliationType === "school" ? submission.schoolName : "",
+    submission.affiliationType === "school" ? submission.schoolAddress : "",
+    submission.affiliationType === "school" ? submission.designation : "",
+    submission.affiliationType === "school" ? submission.designationOther : "",
+    // Neither / Company
+    submission.affiliationType === "neither" ? submission.companyOrganization : "",
+    submission.affiliationType === "neither" ? submission.companyAddress : "",
+    submission.affiliationType === "neither" ? submission.positionDesignation : "",
     submission.day1Session,
     submission.day2Session,
     submission.accommodation,
     submission.paymentMode,
+    submission.transactionNumber,
+    submission.idUploadName,
+    submission.paymentProofName,
   ]);
 
   return [header, ...rows]
-    .map((row) => row.map((value) => `"${String(value).replace(/"/g, '""')}"`).join(","))
+    .map((row) => row.map((value) => `"${String(value ?? "").replace(/"/g, '""')}"`).join(","))
     .join("\n");
 }

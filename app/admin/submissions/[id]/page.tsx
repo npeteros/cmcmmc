@@ -69,8 +69,13 @@ function getAffiliationDetails(
   }
 
   if (submission.affiliationType === "parish") {
+    const archdioceseLabel =
+      submission.archdiocese === "Others" && submission.archdioceseOther
+        ? `${submission.archdiocese} (${submission.archdioceseOther})`
+        : submission.archdiocese;
+
     return [
-      { label: "Archdiocese", value: submission.archdiocese },
+      { label: "Archdiocese", value: archdioceseLabel },
       { label: "Parish name", value: submission.parishName },
       { label: "Parish address", value: submission.parishAddress },
       { label: "Organization name", value: submission.organizationName },
@@ -182,6 +187,10 @@ export default async function SubmissionPage({ params }: SubmissionPageProps) {
               value={submission.accommodation === "avail" ? "Requested" : "Not requested"}
             />
             <DetailItem label="Payment mode" value={submission.paymentMode} />
+            <DetailItem
+              label="Transaction number"
+              value={submission.transactionNumber}
+            />
           </div>
 
           <div className="space-y-4 rounded-2xl border border-slate-200 bg-slate-50 p-5">
@@ -212,7 +221,7 @@ export default async function SubmissionPage({ params }: SubmissionPageProps) {
                 <p className="text-xs font-semibold uppercase tracking-[0.2em] text-slate-400">
                   ID upload
                 </p>
-                <p className="mt-2 text-sm font-medium text-slate-700">
+                <p className="mt-2 text-sm font-medium text-slate-700 truncate">
                   {submission.idUploadName}
                 </p>
                 {idUploadUrl ? (
@@ -230,7 +239,7 @@ export default async function SubmissionPage({ params }: SubmissionPageProps) {
                 <p className="text-xs font-semibold uppercase tracking-[0.2em] text-slate-400">
                   Payment proof
                 </p>
-                <p className="mt-2 text-sm font-medium text-slate-700">
+                <p className="mt-2 text-sm font-medium text-slate-700 truncate">
                   {submission.paymentProofName}
                 </p>
                 {paymentProofUrl ? (

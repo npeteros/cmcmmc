@@ -3,11 +3,19 @@ import "server-only";
 import { randomUUID } from "crypto";
 
 import {
-  buildSubmissionCsv,
   mockSubmissions,
   type Submission,
   type SubmissionStatus,
+  formatSubmissionDate,
+  getAffiliationLabel,
+  getSubmissionOrganization,
 } from "@/lib/admin-submissions";
+import {
+  ACCOMMODATION_CAP,
+  day1Options,
+  day2Options,
+  SESSION_CAP,
+} from "@/lib/registration-options";
 import { getStorageBucketName, createClient } from "@/lib/supabase.server";
 import { cookies } from 'next/headers'
 
@@ -27,6 +35,7 @@ type SubmissionRow = {
   shirt_size: string;
   organization_name: string;
   archdiocese: string;
+  archdiocese_other: string | null;
   parish_name: string;
   parish_address: string;
   role_in_ministry: string;
@@ -43,6 +52,7 @@ type SubmissionRow = {
   day2_session: string;
   accommodation: Submission["accommodation"];
   payment_mode: Submission["paymentMode"];
+  transaction_number: string | null;
   id_upload_name: string;
   payment_proof_name: string;
   id_upload_path: string | null;
@@ -52,6 +62,7 @@ type SubmissionRow = {
 export type RegistrationSubmissionInput = {
   affiliationType: Submission["affiliationType"];
   archdiocese: string;
+  archdioceseOther: string;
   parishName: string;
   parishAddress: string;
   organizationName: string;
@@ -78,6 +89,7 @@ export type RegistrationSubmissionInput = {
   day2Session: string;
   accommodation: Submission["accommodation"];
   paymentMode: Submission["paymentMode"];
+  transactionNumber: string;
 };
 
 function mapRowToSubmission(row: SubmissionRow): Submission {
@@ -97,6 +109,7 @@ function mapRowToSubmission(row: SubmissionRow): Submission {
     shirtSize: row.shirt_size,
     organizationName: row.organization_name,
     archdiocese: row.archdiocese,
+    archdioceseOther: row.archdiocese_other ?? "",
     parishName: row.parish_name,
     parishAddress: row.parish_address,
     roleInMinistry: row.role_in_ministry,
@@ -113,6 +126,7 @@ function mapRowToSubmission(row: SubmissionRow): Submission {
     day2Session: row.day2_session,
     accommodation: row.accommodation,
     paymentMode: row.payment_mode,
+    transactionNumber: row.transaction_number ?? "",
     idUploadName: row.id_upload_name,
     paymentProofName: row.payment_proof_name,
     idUploadPath: row.id_upload_path ?? undefined,
@@ -129,8 +143,181 @@ function buildStoragePath(
   return `submissions/${submissionId}/${kind}/${randomUUID()}-${safeName}`;
 }
 
-export function createSubmissionCsv(submissions: Submission[]) {
-  return buildSubmissionCsv(submissions);
+export type BreakoutSessionCounts = {
+  day1Counts: Record<string, number>;
+  day2Counts: Record<string, number>;
+  limit: number;
+  accommodationCount: number;
+  accommodationLimit: number;
+};
+
+function buildInitialCounts(options: ReadonlyArray<{ value: string }>) {
+  return Object.fromEntries(options.map((option) => [option.value, 0]));
+}
+
+function incrementCount(counts: Record<string, number>, key?: string | null) {
+  if (!key) {
+    return;
+  }
+
+  if (counts[key] === undefined) {
+    counts[key] = 1;
+    return;
+  }
+
+  counts[key] += 1;
+}
+
+export async function getBreakoutSessionCounts(): Promise<BreakoutSessionCounts> {
+  const day1Counts = buildInitialCounts(day1Options);
+  const day2Counts = buildInitialCounts(day2Options);
+  let accommodationCount = 0;
+
+  const cookieStore = await cookies();
+  const supabase = createClient(cookieStore);
+
+  if (!supabase) {
+    mockSubmissions.forEach((submission) => {
+      incrementCount(day1Counts, submission.day1Session);
+      incrementCount(day2Counts, submission.day2Session);
+      if (submission.accommodation === "avail") {
+        accommodationCount += 1;
+      }
+    });
+
+    return {
+      day1Counts,
+      day2Counts,
+      limit: SESSION_CAP,
+      accommodationCount,
+      accommodationLimit: ACCOMMODATION_CAP,
+    };
+  }
+
+  const { data, error } = await supabase
+    .from("submissions")
+    .select("day1_session, day2_session, accommodation");
+
+  if (error) {
+    throw new Error(error.message);
+  }
+
+  (data ?? []).forEach((row) => {
+    const record = row as {
+      day1_session?: string | null;
+      day2_session?: string | null;
+      accommodation?: Submission["accommodation"] | null;
+    };
+    incrementCount(day1Counts, record.day1_session ?? undefined);
+    incrementCount(day2Counts, record.day2_session ?? undefined);
+    if (record.accommodation === "avail") {
+      accommodationCount += 1;
+    }
+  });
+
+  console.log("Day 1 Counts: ", day1Counts);
+  console.log("Day 2 Counts: ", day2Counts);
+  console.log("Session Cap: ", SESSION_CAP);
+
+  return {
+    day1Counts,
+    day2Counts,
+    limit: SESSION_CAP,
+    accommodationCount,
+    accommodationLimit: ACCOMMODATION_CAP,
+  };
+}
+
+export async function createSubmissionCsv(submissions: Submission[]) {
+  const header = [
+    "ID",
+    "Submitted At",
+    "Status",
+    "Title",
+    "First Name",
+    "Middle Name",
+    "Surname",
+    "Congregation",
+    "Email",
+    "Mobile",
+    "Complete Address",
+    "Shirt Size",
+    "Affiliation",
+    "Organization",
+    "Archdiocese",
+    "Archdiocese (Other)",
+    "Parish name",
+    "Parish address",
+    "Role in ministry",
+    "Role in ministry (Other)",
+    "Province",
+    "School name",
+    "School address",
+    "Designation",
+    "Designation (Other)",
+    "Company / Organization",
+    "Company address",
+    "Position / Designation",
+    "Day 1 Session",
+    "Day 2 Session",
+    "Accommodation",
+    "Payment Mode",
+    "Transaction Number",
+    "ID upload URL",
+    "Payment proof URL",
+  ];
+
+  const rows = await Promise.all(
+    submissions.map(async (submission) => {
+      const idUploadUrl = await getSubmissionFileUrl(submission.idUploadPath);
+      const paymentProofUrl = await getSubmissionFileUrl(submission.paymentProofPath);
+
+      return [
+        submission.id,
+        formatSubmissionDate(submission.submittedAt),
+        submission.status,
+        submission.title,
+        submission.firstName,
+        submission.middleName,
+        submission.surname,
+        submission.congregation,
+        submission.email,
+        submission.mobile,
+        submission.completeAddress,
+        submission.shirtSize,
+        getAffiliationLabel(submission.affiliationType),
+        getSubmissionOrganization(submission),
+        // Parish-specific
+        submission.affiliationType === "parish" ? submission.archdiocese : "",
+        submission.affiliationType === "parish" ? submission.archdioceseOther : "",
+        submission.affiliationType === "parish" ? submission.parishName : "",
+        submission.affiliationType === "parish" ? submission.parishAddress : "",
+        submission.affiliationType === "parish" ? submission.roleInMinistry : "",
+        submission.affiliationType === "parish" ? submission.roleInMinistryOther : "",
+        // School-specific
+        submission.affiliationType === "school" ? submission.province : "",
+        submission.affiliationType === "school" ? submission.schoolName : "",
+        submission.affiliationType === "school" ? submission.schoolAddress : "",
+        submission.affiliationType === "school" ? submission.designation : "",
+        submission.affiliationType === "school" ? submission.designationOther : "",
+        // Neither / Company
+        submission.affiliationType === "neither" ? submission.companyOrganization : "",
+        submission.affiliationType === "neither" ? submission.companyAddress : "",
+        submission.affiliationType === "neither" ? submission.positionDesignation : "",
+        submission.day1Session,
+        submission.day2Session,
+        submission.accommodation,
+        submission.paymentMode,
+        submission.transactionNumber,
+        idUploadUrl || submission.idUploadName || "",
+        paymentProofUrl || submission.paymentProofName || "",
+      ];
+    }),
+  );
+
+  return [header, ...rows]
+    .map((row) => row.map((value) => `"${String(value ?? "").replace(/"/g, '""')}"`).join(","))
+    .join("\n");
 }
 
 export async function listSubmissions() {
@@ -254,6 +441,7 @@ export async function createRegistrationSubmission(
     shirt_size: input.shirtSize,
     organization_name: input.organizationName,
     archdiocese: input.archdiocese,
+    archdiocese_other: input.archdioceseOther,
     parish_name: input.parishName,
     parish_address: input.parishAddress,
     role_in_ministry: input.roleInMinistry,
@@ -270,6 +458,7 @@ export async function createRegistrationSubmission(
     day2_session: input.day2Session,
     accommodation: input.accommodation,
     payment_mode: input.paymentMode,
+    transaction_number: input.transactionNumber,
     id_upload_name: files.idUpload.name,
     payment_proof_name: files.paymentProof.name,
     id_upload_path: idUploadPath,

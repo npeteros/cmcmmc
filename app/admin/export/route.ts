@@ -9,7 +9,7 @@ export async function GET(request: Request) {
     return NextResponse.redirect(new URL("/login", request.url));
   }
 
-  const csv = createSubmissionCsv(await listSubmissions());
+  const csv = await createSubmissionCsv(await listSubmissions());
 
   return new NextResponse(csv, {
     status: 200,

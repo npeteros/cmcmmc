@@ -36,6 +36,9 @@ import {
   DialogDescription,
   DialogFooter,
 } from "@/components/ui/dialog";
+import { Checkbox } from "@/components/ui/checkbox";
+import { Info } from "lucide-react";
+
 const MAX_FILE_SIZE = 5 * 1024 * 1024;
 const ACCEPTED_FILE_TYPES = [
   "image/jpeg",
@@ -80,7 +83,24 @@ const designationOptions = [
   "Others",
 ] as const;
 
-const titleOptions = ["Rev. Fr.", "Sr.", "Bro.", "Mr.", "Ms.", "Mrs."] as const;
+const parishOptions = [
+  "Archdiocese of Cebu",
+  "Diocese of Dumaguete",
+  "Diocese of Tagbilaran",
+  "Diocese of Talibon",
+  "Diocese of Maasin",
+  "Others",
+];
+
+const titleOptions = [
+  "Rev. Fr.",
+  "Rev.",
+  "Sr.",
+  "Bro.",
+  "Mr.",
+  "Ms.",
+  "Mrs.",
+] as const;
 
 const shirtSizes = [
   "XS",
@@ -92,7 +112,21 @@ const shirtSizes = [
   "3XL",
   "4XL",
   "5XL",
+  "6XL",
 ] as const;
+
+const shirtSizeAdditionalFees = {
+  XS: 0,
+  S: 0,
+  M: 0,
+  L: 0,
+  XL: 0,
+  "2XL": 0,
+  "3XL": 10,
+  "4XL": 20,
+  "5XL": 30,
+  "6XL": 40,
+};
 
 const day1WithImages = day1Options.map((option) => ({
   ...option,
@@ -128,10 +162,16 @@ const fileSchema = z
 const phoneRegex = /^(09|\+639)\d{9}$/;
 
 const formSchema = z.object({
+  privacyConsent: z.boolean().refine((val) => val === true, {
+    error: "You must consent to the data privacy policy to proceed.",
+  }),
   affiliationType: z.enum(["parish", "school", "neither"], {
     error: "Select an affiliation type.",
   }),
-  archdiocese: z.string().optional(),
+  archdiocese: z.enum(parishOptions, {
+    error: "Select an archdiocese.",
+  }),
+  archdioceseOther: z.string().optional(),
   parishName: z.string().optional(),
   parishAddress: z.string().optional(),
   organizationName: z.string().optional(),
@@ -141,24 +181,14 @@ const formSchema = z.object({
   roleInMinistryOther: z.string().optional(),
   province: z.string().optional(),
   schoolName: z.string().optional(),
-  schoolAddress: z
-    .string()
-    .optional(),
+  schoolAddress: z.string().optional(),
   designation: z.enum(designationOptions, {
     error: "Designation is required.",
   }),
-  designationOther: z
-    .string()
-    .optional(),
-  companyOrganization: z
-    .string()
-    .optional(),
-  companyAddress: z
-    .string()
-    .optional(),
-  positionDesignation: z
-    .string()
-    .optional(),
+  designationOther: z.string().optional(),
+  companyOrganization: z.string().optional(),
+  companyAddress: z.string().optional(),
+  positionDesignation: z.string().optional(),
   title: z.enum(titleOptions, {
     error: "Select a title.",
   }),
@@ -212,6 +242,7 @@ type StepConfig = {
 };
 
 const steps: StepConfig[] = [
+  { key: "data-privacy", label: "Data Privacy Consent" },
   { key: "affiliation", label: "Affiliation" },
   { key: "organization", label: "Organization" },
   { key: "personal", label: "Personal" },
@@ -221,8 +252,10 @@ const steps: StepConfig[] = [
 ];
 
 const defaultValues: RegistrationValues = {
+  privacyConsent: false,
   affiliationType: "parish",
-  archdiocese: "",
+  archdiocese: parishOptions[0],
+  archdioceseOther: "",
   parishName: "",
   parishAddress: "",
   organizationName: "",
@@ -258,10 +291,13 @@ function getStepFields(
   values: RegistrationValues,
 ): RegistrationFieldName[] {
   if (stepIndex === 0) {
+    return ["privacyConsent"];
+  }
+  if (stepIndex === 1) {
     return ["affiliationType"];
   }
 
-  if (stepIndex === 1) {
+  if (stepIndex === 2) {
     if (values.affiliationType === "parish") {
       return [
         "archdiocese",
@@ -269,6 +305,7 @@ function getStepFields(
         "parishAddress",
         "organizationName",
         "roleInMinistry",
+        values.archdiocese === "Others" ? "archdioceseOther" : undefined,
         values.roleInMinistry === "Others" ? "roleInMinistryOther" : undefined,
       ].filter(Boolean) as RegistrationFieldName[];
     }
@@ -286,7 +323,7 @@ function getStepFields(
     return ["companyOrganization", "companyAddress", "positionDesignation"];
   }
 
-  if (stepIndex === 2) {
+  if (stepIndex === 3) {
     return [
       "title",
       "firstName",
@@ -299,11 +336,11 @@ function getStepFields(
     ];
   }
 
-  if (stepIndex === 3) {
+  if (stepIndex === 4) {
     return ["day1Session", "day2Session"];
   }
 
-  if (stepIndex === 4) {
+  if (stepIndex === 5) {
     return ["accommodation"];
   }
 
@@ -368,6 +405,198 @@ export default function RegistrationForm() {
     const fields = getStepFields(currentStep, values as RegistrationValues);
     const isValid = await form.trigger(fields, { shouldFocus: true });
 
+    if (currentStep === 2) {
+      if ((values as RegistrationValues).affiliationType === "parish") {
+        const parishName = ((values as RegistrationValues).parishName ?? "")
+          .toString()
+          .trim();
+        const parishAddress = (
+          (values as RegistrationValues).parishAddress ?? ""
+        )
+          .toString()
+          .trim();
+        const organizationName = (
+          (values as RegistrationValues).organizationName ?? ""
+        )
+          .toString()
+          .trim();
+        const roleInMinistry = (
+          (values as RegistrationValues).roleInMinistry ?? ""
+        )
+          .toString()
+          .trim();
+
+        if (!parishName) {
+          form.setError("parishName", {
+            type: "required",
+            message: "Parish name is required.",
+          });
+          if (typeof form.setFocus === "function") {
+            form.setFocus("parishName");
+          }
+          return;
+        }
+
+        if (!parishAddress) {
+          form.setError("parishAddress", {
+            type: "required",
+            message: "Parish address is required.",
+          });
+          if (typeof form.setFocus === "function") {
+            form.setFocus("parishAddress");
+          }
+          return;
+        }
+
+        if (!organizationName) {
+          form.setError("organizationName", {
+            type: "required",
+            message: "Organization name is required.",
+          });
+          if (typeof form.setFocus === "function") {
+            form.setFocus("organizationName");
+          }
+          return;
+        }
+
+        if (roleInMinistry === "Others") {
+          const roleInMinistryOther =
+            (values as RegistrationValues).roleInMinistryOther
+              ?.toString()
+              .trim() ?? "";
+          if (!roleInMinistryOther) {
+            form.setError("roleInMinistryOther", {
+              type: "required",
+              message: "Please specify your role in the ministry.",
+            });
+            if (typeof form.setFocus === "function") {
+              form.setFocus("roleInMinistryOther");
+            }
+            return;
+          }
+        }
+      }
+
+      if ((values as RegistrationValues).affiliationType === "school") {
+        const province = ((values as RegistrationValues).province ?? "")
+          .toString()
+          .trim();
+        const schoolName = ((values as RegistrationValues).schoolName ?? "")
+          .toString()
+          .trim();
+        const schoolAddress = (
+          (values as RegistrationValues).schoolAddress ?? ""
+        )
+          .toString()
+          .trim();
+        const designation = ((values as RegistrationValues).designation ?? "")
+          .toString()
+          .trim();
+
+        if (!province) {
+          form.setError("province", {
+            type: "required",
+            message: "Province is required.",
+          });
+          if (typeof form.setFocus === "function") {
+            form.setFocus("province");
+          }
+          return;
+        }
+
+        if (!schoolName) {
+          form.setError("schoolName", {
+            type: "required",
+            message: "School name is required.",
+          });
+          if (typeof form.setFocus === "function") {
+            form.setFocus("schoolName");
+          }
+          return;
+        }
+
+        if (!schoolAddress) {
+          form.setError("schoolAddress", {
+            type: "required",
+            message: "School address is required.",
+          });
+          if (typeof form.setFocus === "function") {
+            form.setFocus("schoolAddress");
+          }
+          return;
+        }
+
+        if (designation === "Others") {
+          const designationOther = (
+            (values as RegistrationValues).designationOther ?? ""
+          )
+            .toString()
+            .trim();
+          if (!designationOther) {
+            form.setError("designationOther", {
+              type: "required",
+              message: "Please specify your designation.",
+            });
+            if (typeof form.setFocus === "function") {
+              form.setFocus("designationOther");
+            }
+            return;
+          }
+        }
+      }
+
+      if ((values as RegistrationValues).affiliationType === "neither") {
+        const companyOrganization = (
+          (values as RegistrationValues).companyOrganization ?? ""
+        )
+          .toString()
+          .trim();
+        const positionDesignation = (
+          (values as RegistrationValues).positionDesignation ?? ""
+        )
+          .toString()
+          .trim();
+        const companyAddress = (
+          (values as RegistrationValues).companyAddress ?? ""
+        )
+          .toString()
+          .trim();
+
+        if (!companyOrganization) {
+          form.setError("companyOrganization", {
+            type: "required",
+            message: "Company/Organization is required.",
+          });
+          if (typeof form.setFocus === "function") {
+            form.setFocus("companyOrganization");
+          }
+          return;
+        }
+
+        if (!positionDesignation) {
+          form.setError("positionDesignation", {
+            type: "required",
+            message: "Position/Designation is required.",
+          });
+          if (typeof form.setFocus === "function") {
+            form.setFocus("positionDesignation");
+          }
+          return;
+        }
+
+        if (!companyAddress) {
+          form.setError("companyAddress", {
+            type: "required",
+            message: "Company address is required.",
+          });
+          if (typeof form.setFocus === "function") {
+            form.setFocus("companyAddress");
+          }
+          return;
+        }
+      }
+    }
+
     if (isValid) {
       setCurrentStep((prev) => Math.min(prev + 1, steps.length - 1));
     }
@@ -379,7 +608,6 @@ export default function RegistrationForm() {
 
   const onSubmit = async (data: RegistrationValues) => {
     try {
-
       const formData = new FormData();
 
       Object.entries(data).forEach(([key, value]) => {
@@ -410,12 +638,14 @@ export default function RegistrationForm() {
         throw new Error(result.error || "Failed to submit registration.");
       }
 
-      console.log("Registration submitted", result.submissionId);
       form.reset(defaultValues);
       setCurrentStep(0);
       setIsDialogOpen(true);
     } catch (error) {
-      const msg = error instanceof Error ? error.message : "Unable to submit registration.";
+      const msg =
+        error instanceof Error
+          ? error.message
+          : "Unable to submit registration.";
       toast.error(msg);
       console.error("Registration submit error:", error);
     }
@@ -423,7 +653,7 @@ export default function RegistrationForm() {
 
   return (
     <div className="min-h-screen bg-[radial-gradient(circle_at_top,#f8fbff,#eef4ff_60%,#e4edf7_100%)] py-14">
-      <div className="mx-auto w-full max-w-5xl px-4">
+      <div className="mx-auto w-full max-w-7xl px-4">
         <div className="mb-10 text-center">
           <p className="text-xs font-semibold uppercase tracking-[0.3em] text-[#2aadb5]">
             Registration
@@ -447,10 +677,23 @@ export default function RegistrationForm() {
           <DialogContent>
             <DialogTitle>Registration Received</DialogTitle>
             <DialogDescription>
-              <p>Thank you for signing up for the 2nd Cebu Metropolitan Catholic Mass Media Congress!</p>
-              <p className="mt-2">We will send a confirmation email within 2 weeks after receiving your registration. If our email does not appear in your Inbox, kindly check your Spam folder.</p>
-              <p className="mt-2">Don’t forget to like, follow, and subscribe to the official social media channels of the Archdiocese of Cebu.</p>
-              <p className="mt-1 font-semibold">We are @sugboanongsimbahan on Facebook, Instagram, X, YouTube, and Tiktok.</p>
+              <p>
+                Thank you for signing up for the 2nd Cebu Metropolitan Catholic
+                Mass Media Congress!
+              </p>
+              <p className="mt-2">
+                We will send a confirmation email within 2 weeks after receiving
+                your registration. If our email does not appear in your Inbox,
+                kindly check your Spam folder.
+              </p>
+              <p className="mt-2">
+                Don&apos;t forget to like, follow, and subscribe to the official
+                social media channels of the Archdiocese of Cebu.
+              </p>
+              <p className="mt-1 font-semibold">
+                We are @sugboanongsimbahan on Facebook, Instagram, X, YouTube,
+                and Tiktok.
+              </p>
             </DialogDescription>
             <DialogFooter>
               <Button onClick={() => setIsDialogOpen(false)}>Close</Button>
@@ -470,7 +713,118 @@ export default function RegistrationForm() {
                 <section className="space-y-6">
                   <header>
                     <h2 className="text-xl font-semibold text-[#1a2e5a]">
-                      Step 1: Affiliation Type
+                      Step 1: Registration
+                    </h2>
+                    <p className="text-sm text-slate-600">
+                      We are excited to see you at the 2nd Cebu Metropolitan
+                      Catholic Mass Media Congress!
+                    </p>
+                    <p className="mt-2 text-sm text-slate-600">
+                      Before accomplishing the registration form, please be
+                      reminded of the following:
+                    </p>
+                    <ol className="mt-2 list-inside list-decimal space-y-1 text-sm text-slate-600">
+                      <li className="ml-4">One person per registration.</li>
+                      <li className="ml-4">
+                        Please ensure that the information provided in the form
+                        is accurate and complete. The organizers will
+                        communicate important updates through the contact
+                        information provided in the form.
+                      </li>
+                      <li className="ml-4">
+                        The form will require you to upload the proof of payment
+                        (e.g. screenshot of the successful online transfer or a
+                        scanned copy of the bank deposit slip). Kindly settle
+                        the registration fee before filling out this form. The
+                        fee is inclusive of the Congress kit and Congress shirt.
+                      </li>
+                      <ul className="ml-8 list-disc">
+                        <li className="ml-4">
+                          Early Bird rate: Php 1000 - from June 1 until June 30
+                        </li>
+                        <li className="ml-4">
+                          Regular rate: Php 1200 - from July 1 until August 31
+                        </li>
+                      </ul>
+                      <li className="ml-4">
+                        Please take note of your transaction reference number,
+                        as this will be required in the form.
+                      </li>
+                      <li className="ml-4">
+                        Payment for the registration fee are accepted through
+                        the following channels:
+                      </li>
+                      <ul className="ml-8 list-disc">
+                        <li className="ml-4">
+                          GCash - 0976 090 1489 (Ch*****n C.)
+                        </li>
+                        <li className="ml-4">
+                          Online Bank Transfer and over-the-counter check
+                          payments.
+                        </li>
+                        <ul className="ml-8 list-disc">
+                          <li className="ml-4">Bank Name: BDO</li>
+                          <li className="ml-4">Account Name: RCAC</li>
+                          <li className="ml-4">Account Number: 006108017442</li>
+                        </ul>
+                      </ul>
+                      <li className="ml-4">
+                        For concerns regarding the Congress, please send an
+                        email to: cm.catholicmassmediacongress@gmail.com.{" "}
+                      </li>
+                    </ol>
+                    <p className="mt-4">
+                      <b>DATA PRIVACY STATEMENT</b>
+                    </p>
+                    <p className="mt-2 text-sm text-slate-600">
+                      By submitting this form, you consent to the collection,
+                      use, and processing of your personal information solely
+                      for purposes related to the Cebu Metropolitan Catholic
+                      Mass Media Congress, in accordance with the Data Privacy
+                      Act of 2012.
+                    </p>
+                    <p className="mt-2 text-sm text-slate-600">
+                      All information provided will be treated with
+                      confidentiality and will only be accessed by the Cebu
+                      Archdiocesan Digital Communications Ministry (CADComM)
+                      volunteers involved in the administration and organization
+                      of the event.
+                    </p>
+                  </header>
+                  <FormField
+                    control={form.control}
+                    name="privacyConsent"
+                    render={({ field }) => (
+                      <FormItem>
+                        <FormLabel>
+                          Privacy Consent{" "}
+                          <span className="text-[#e63946]">*</span>
+                        </FormLabel>
+                        <FormControl>
+                          <label className="flex items-center gap-3 rounded-lg border border-slate-200 p-4 transition hover:border-[#2aadb5]/50">
+                            <Checkbox
+                              checked={field.value}
+                              onCheckedChange={field.onChange}
+                            />
+                            <span className="text-sm text-slate-700">
+                              I voluntarily give my full consent for CADCOMM to
+                              use and process the information submitted through
+                              this form for the 2nd CM-CMMC.
+                            </span>
+                          </label>
+                        </FormControl>
+                        <FormMessage />
+                      </FormItem>
+                    )}
+                  />
+                </section>
+              )}
+
+              {currentStep === 1 && (
+                <section className="space-y-6">
+                  <header>
+                    <h2 className="text-xl font-semibold text-[#1a2e5a]">
+                      Step 2: Affiliation Type
                     </h2>
                     <p className="text-sm text-slate-600">
                       Tell us where you are representing so we can tailor the
@@ -512,11 +866,11 @@ export default function RegistrationForm() {
                 </section>
               )}
 
-              {currentStep === 1 && (
+              {currentStep === 2 && (
                 <section className="space-y-6">
                   <header>
                     <h2 className="text-xl font-semibold text-[#1a2e5a]">
-                      Step 2: Organization Details
+                      Step 3: Organization Details
                     </h2>
                     <p className="text-sm text-slate-600">
                       Provide the information required for your selected
@@ -536,10 +890,23 @@ export default function RegistrationForm() {
                               <span className="text-[#e63946]">*</span>
                             </FormLabel>
                             <FormControl>
-                              <Input
-                                placeholder="Archdiocese of Cebu"
-                                {...field}
-                              />
+                              <Select
+                                onValueChange={field.onChange}
+                                value={field.value}
+                              >
+                                <FormControl>
+                                  <SelectTrigger>
+                                    <SelectValue placeholder="Select parish" />
+                                  </SelectTrigger>
+                                </FormControl>
+                                <SelectContent>
+                                  {parishOptions.map((option) => (
+                                    <SelectItem key={option} value={option}>
+                                      {option}
+                                    </SelectItem>
+                                  ))}
+                                </SelectContent>
+                              </Select>
                             </FormControl>
                             <FormMessage />
                           </FormItem>
@@ -555,15 +922,33 @@ export default function RegistrationForm() {
                               <span className="text-[#e63946]">*</span>
                             </FormLabel>
                             <FormControl>
-                              <Input
-                                placeholder="Saint Joseph Parish"
-                                {...field}
-                              />
+                              <Input placeholder="Parish name" {...field} />
                             </FormControl>
                             <FormMessage />
                           </FormItem>
                         )}
                       />
+                      {values.archdiocese === "Others" && (
+                        <FormField
+                          control={form.control}
+                          name="archdioceseOther"
+                          render={({ field }) => (
+                            <FormItem className="md:col-span-2">
+                              <FormLabel>
+                                Other Arch/Diocese{" "}
+                                <span className="text-[#e63946]">*</span>
+                              </FormLabel>
+                              <FormControl>
+                                <Input
+                                  placeholder="Enter other archdiocese"
+                                  {...field}
+                                />
+                              </FormControl>
+                              <FormMessage />
+                            </FormItem>
+                          )}
+                        />
+                      )}
                       <FormField
                         control={form.control}
                         name="parishAddress"
@@ -593,7 +978,10 @@ export default function RegistrationForm() {
                               <span className="text-[#e63946]">*</span>
                             </FormLabel>
                             <FormControl>
-                              <Input placeholder="Media Ministry" {...field} />
+                              <Input
+                                placeholder="Organization's name"
+                                {...field}
+                              />
                             </FormControl>
                             <FormMessage />
                           </FormItem>
@@ -819,11 +1207,11 @@ export default function RegistrationForm() {
                 </section>
               )}
 
-              {currentStep === 2 && (
+              {currentStep === 3 && (
                 <section className="space-y-6">
                   <header>
                     <h2 className="text-xl font-semibold text-[#1a2e5a]">
-                      Step 3: Personal Information
+                      Step 4: Personal Information
                     </h2>
                     <p className="text-sm text-slate-600">
                       Provide your personal details and upload a valid ID.
@@ -983,6 +1371,17 @@ export default function RegistrationForm() {
                               ))}
                             </SelectContent>
                           </Select>
+                          {field.value &&
+                            ["3XL", "4XL", "5XL", "6XL"].includes(
+                              field.value,
+                            ) && (
+                              <p className="mt-1 text-xs text-blue-400 flex items-center gap-1">
+                                <Info size={12} /> An additional fee applies for
+                                size {field.value}. Please prepare an additional
+                                payment of Php{" "}
+                                {shirtSizeAdditionalFees[field.value]}.
+                              </p>
+                            )}
                           <FormMessage />
                         </FormItem>
                       )}
@@ -1037,11 +1436,11 @@ export default function RegistrationForm() {
                 </section>
               )}
 
-              {currentStep === 3 && (
+              {currentStep === 4 && (
                 <section className="space-y-6">
                   <header>
                     <h2 className="text-xl font-semibold text-[#1a2e5a]">
-                      Step 4: Breakout Sessions
+                      Step 5: Breakout Sessions
                     </h2>
                     <p className="text-sm text-slate-600">
                       Select one session per day. Two selections are required to
@@ -1150,11 +1549,11 @@ export default function RegistrationForm() {
                 </section>
               )}
 
-              {currentStep === 4 && (
+              {currentStep === 5 && (
                 <section className="space-y-6">
                   <header>
                     <h2 className="text-xl font-semibold text-[#1a2e5a]">
-                      Step 5: Accommodation
+                      Step 6: Accommodation
                     </h2>
                     <p className="text-sm text-slate-600">
                       Please review the accommodation details before selecting
@@ -1163,18 +1562,51 @@ export default function RegistrationForm() {
                   </header>
                   <div className="space-y-2 rounded-xl border border-slate-200 bg-slate-50 px-5 py-4 text-sm text-slate-600">
                     <p>
-                      Free accommodation for 500 participants, first-come
-                      first-served.
+                      The organizers have arranged free accommodation for 500
+                      participants, available on a first-come, first-served
+                      basis from 3:00 PM of October 2 until 12:00 NN (lunch) of
+                      October 4.
                     </p>
-                    <p>Available: 3:00 PM October 2 – 12:00 NN October 4.</p>
-                    <p>Shared air-conditioned rooms, shared toilet/bathroom.</p>
                     <p>
-                      Participants must bring sleeping materials and toiletries.
+                      The accommodation will provide shared air-conditioned
+                      rooms, as well as shared toilet and bathroom facilities.
                     </p>
-                    <p>Meals not provided.</p>
-                    <p>Free shuttle service available.</p>
-                    <p>Valid ID required at venue.</p>
-                    <p>Cancellations not allowed.</p>
+                    <p>
+                      Participants are advised to bring their own personal
+                      necessities, including:
+                    </p>
+                    <ul className="list-disc pl-5">
+                      <li>
+                        Sleeping materials (pillow, mattress/mat, blanket)
+                      </li>
+                      <li>
+                        Toiletries (soap, shampoo, towel, toothbrush, etc.)
+                      </li>
+                    </ul>
+                    <p>
+                      Meals will not be provided at the accommodation venues and
+                      should be arranged by the participants.
+                    </p>
+                    <p>
+                      Free shuttle services for Congress participants shall pass
+                      by the accommodations. Participants are advised to take
+                      note of the drop off and pickup schedules.
+                    </p>
+                    <p>
+                      Participants are required to present a valid ID (i.e.
+                      school ID or any government-issued ID) at the
+                      accommodation.
+                    </p>
+                    <p>
+                      As a gesture of gratitude to our partner institutions, all
+                      participants are encouraged to observe courtesy and
+                      respect within the premises of their assigned
+                      accommodation at all times.{" "}
+                    </p>
+                    <p>
+                      Cancellations will not be allowed to ensure the proper
+                      allocation of limited slots.
+                    </p>
                   </div>
                   <FormField
                     control={form.control}
@@ -1212,11 +1644,11 @@ export default function RegistrationForm() {
                 </section>
               )}
 
-              {currentStep === 5 && (
+              {currentStep === 6 && (
                 <section className="space-y-6">
                   <header>
                     <h2 className="text-xl font-semibold text-[#1a2e5a]">
-                      Step 6: Payment
+                      Step 7: Payment
                     </h2>
                     <p className="text-sm text-slate-600">
                       Choose a payment mode and upload proof of payment.
@@ -1315,8 +1747,6 @@ export default function RegistrationForm() {
                   </div>
                 </section>
               )}
-
-              
 
               <div className="flex flex-col-reverse gap-3 sm:flex-row sm:items-center sm:justify-between">
                 <Button

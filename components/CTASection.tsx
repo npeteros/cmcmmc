@@ -26,7 +26,8 @@ export default function CTASection() {
             Register Here
           </Link>
           <Link
-            href="#program"
+            href="/2nd-CM-CMMC-Program.pdf"
+            target="_blank"
             className="bg-[#56aeff] hover:bg-[#22959d] text-white font-bold text-sm uppercase tracking-wide px-6 py-4 rounded-lg text-center transition-colors flex items-center justify-center"
           >
             View Congress Program

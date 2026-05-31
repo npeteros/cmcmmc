@@ -11,10 +11,10 @@ const SpeakerDetails = ({ speaker }: { speaker: Speaker }) => {
         alt={name}
         // The height and object position are hardcoded for specific speakers to ensure the best presentation of their photos. This is a bit hacky but it allows us to use the same component for all speakers without needing custom styling for each one.
         className={`
-            ${name.includes("Kia") || name.includes("Albert") || name.includes("Gretchen") ? "h-72" : "h-58"} 
+            ${name.includes("Kia") || name.includes("Albert") || name.includes("Gretchen") ? "h-72" : "h-72"} 
             w-full object-cover 
-            ${name.includes("Miko") || name.includes("Kia") ? "object-center" : "object-top"} 
-            mx-auto overflow-hidden rounded-2xl border border-gray-100 bg-[#f8fbff] shadow-sm sm:max-w-[18rem]`}
+            ${name.includes("Miko") || name.includes("Kia") ? "object-center" : "object-center"} 
+            mx-auto overflow-hidden rounded-full border border-gray-100 bg-[#f8fbff] shadow-sm sm:max-w-[18rem]`}
       />
 
       <div className="space-y-2">
@@ -40,11 +40,19 @@ const SpeakerDetails = ({ speaker }: { speaker: Speaker }) => {
               <h3 className="text-sm font-bold uppercase tracking-widest text-[#2aadb5]">
                 {section.title}
               </h3>
-              <ul className="space-y-2 text-sm text-gray-700 leading-relaxed list-disc list-inside">
-                {section.descriptions.map((description) => (
-                  <li key={description}>{description}</li>
-                ))}
+              {name.includes("Gretchen") ? (
+                section.descriptions.map((description) => (
+                  <p key={description} className="text-sm text-gray-700 leading-loose">
+                    {description}
+                  </p>
+                ))
+              ) : (
+                <ul className="space-y-2 text-sm text-gray-700 leading-relaxed list-disc list-inside">
+                  {section.descriptions.map((description) => (
+                    <li key={description}>{description}</li>
+                  ))}
               </ul>
+              )}
             </div>
           ))}
         </div>

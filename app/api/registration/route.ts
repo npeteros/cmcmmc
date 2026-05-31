@@ -2,6 +2,7 @@ import { NextResponse } from "next/server";
 
 import {
   createRegistrationSubmission,
+  getBreakoutSessionCounts,
   type RegistrationSubmissionInput,
 } from "@/lib/submissions.server";
 
@@ -24,6 +25,7 @@ export async function POST(request: Request) {
     const payload: RegistrationSubmissionInput = {
       affiliationType: getString(formData, "affiliationType") as RegistrationSubmissionInput["affiliationType"],
       archdiocese: getString(formData, "archdiocese"),
+      archdioceseOther: getString(formData, "archdioceseOther"),
       parishName: getString(formData, "parishName"),
       parishAddress: getString(formData, "parishAddress"),
       organizationName: getString(formData, "organizationName"),
@@ -50,7 +52,36 @@ export async function POST(request: Request) {
       day2Session: getString(formData, "day2Session"),
       accommodation: getString(formData, "accommodation") as RegistrationSubmissionInput["accommodation"],
       paymentMode: getString(formData, "paymentMode") as RegistrationSubmissionInput["paymentMode"],
+      transactionNumber: getString(formData, "transactionNumber"),
     };
+
+    const counts = await getBreakoutSessionCounts();
+    const day1Count = counts.day1Counts[payload.day1Session] ?? 0;
+    const day2Count = counts.day2Counts[payload.day2Session] ?? 0;
+
+    if (day1Count >= counts.limit) {
+      return NextResponse.json(
+        { ok: false, error: "Selected Day 1 breakout session is full." },
+        { status: 409 },
+      );
+    }
+
+    if (day2Count >= counts.limit) {
+      return NextResponse.json(
+        { ok: false, error: "Selected Day 2 breakout session is full." },
+        { status: 409 },
+      );
+    }
+
+    if (
+      payload.accommodation === "avail" &&
+      counts.accommodationCount >= counts.accommodationLimit
+    ) {
+      return NextResponse.json(
+        { ok: false, error: "Accommodation slots are already full." },
+        { status: 409 },
+      );
+    }
 
     const submission = await createRegistrationSubmission(payload, {
       idUpload: assertFile(formData.get("idUpload"), "idUpload"),

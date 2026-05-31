@@ -1,3 +1,6 @@
+export const SESSION_CAP = 300;
+export const ACCOMMODATION_CAP = 5;
+
 export const day1Options = [
   {
     value: "fr-albert-garong",

@@ -11,6 +11,7 @@ export interface Speaker {
   imgUrl: string;
   speakerDescriptions?: SpeakerDescription[];
   extra?: string;
+  day?: 1 | 2;
 }
 
 export const SPEAKERS: Speaker[] = [
@@ -48,7 +49,7 @@ export const SPEAKERS: Speaker[] = [
   },
   {
     name: "Mr. Howie Severino",
-    role: "Journalist, GMA-7",
+    role: "Journalist, Documentarist",
     session: "Plenary Session 1",
     topic: '"To Work: Human Creativity in AI-Assisted Communication"',
     imgUrl: "/speakers/howie-severino.jpg",
@@ -90,18 +91,14 @@ export const SPEAKERS: Speaker[] = [
       {
         title: "Background",
         descriptions: [
-          "Gretchen Ho, better known as Woman In Action, came into public consciousness not as a part of the entertainment industry, but as an accomplished athlete.",
-          'She played collegiate volleyball for the Ateneo Lady Eagles from 2008 to 2013, where she was a member of the "fab five" who brought Ateneo to their first back-to-back UAAP finals appearances. After which, she played professionally in the Philippine Super Liga (PSL) where her team won the 2014 Grand Prix Conference.',
-          "She debuted in the hosting scene as one of the hosts of the sports magazine show “Gameday Weekend,” on Balls and ABS-CBN Sports+Action. Soon enough Gretchen branched out from hosting sports-themed shows and became an anchor, segment host, and field reporter for various ABS-CBN programs.",
-        ],
-      },
-      {
-        title: "Awards and Recognitions",
-        descriptions: [
-          "Asian Academy Creative Awards (2025): National Winner for Best Factual Presenter (Philippines) for her work on the One News program Morning Matters.",
-          "Gawad Pilipino Awards: Best New Female Segment Host for the Year (2019) and Icon of the Year - Outstanding Female TV Presenter of the Year.",
-          "Gawad Lasallianeta (2020): Most Outstanding Female Correspondent.",
-          "Paragala Media Awards (2020): Best News Personality.",
+          "Gretchen Ho is one of the Philippines' most respected multimedia journalists and storytellers, known for her commitment to bringing meaningful stories closer to the public.",
+          'Widely recognized as the “Woman in Action,” she has built a career anchored on truth, service, and a passion for empowering communities through journalism.',
+          "Before becoming a prominent figure in news and public affairs, Gretchen first distinguished herself as a collegiate athlete. She played for the Ateneo Lady Eagles from 2008 to 2013, helping lead the team to historic back-to-back UAAP Finals appearances as part of the celebrated “Fab Five.” She later continued her athletic career in the professional ranks, winning the 2014 Philippine Super Liga Grand Prix Conference championship.",
+          "Her transition from sports to journalism was marked by the same discipline, resilience, and excellence that defined her athletic career. Beginning as a host of the sports magazine program Gameday Weekend, Gretchen soon expanded her role to become a news anchor, field reporter, and current affairs presenter, covering stories that inform, inspire, and create impact.",
+          "Today, she is recognized not only for her engaging presence on screen but also for her dedication to public service journalism. Through her reporting, she has championed stories of ordinary Filipinos, highlighted issues of national significance, and fostered meaningful conversations on matters that affect communities across the country.",
+          "Her excellence in broadcasting and factual storytelling has earned numerous accolades, including the 2025 Asian Academy Creative Awards National Winner for Best Factual Presenter (Philippines) for her work on Morning Matters on One News.",
+          "She has also been honored with the Gawad Pilipino Awards' Best New Female Segment Host and Icon of the Year - Outstanding Female TV Presenter, the Gawad Lasallianeta Most Outstanding Female Correspondent Award, and the Paragala Media Awards' Best News Personality recognition.",
+          "Through every story she tells, Gretchen Ho continues to exemplify the vital role of journalism in shaping informed, compassionate, and engaged communities."
         ],
       },
     ],
@@ -141,6 +138,7 @@ export const SPEAKERS: Speaker[] = [
         ],
       },
     ],
+    day: 1,
   },
   {
     session: "Breakout Session 2",
@@ -170,6 +168,7 @@ export const SPEAKERS: Speaker[] = [
         ],
       },
     ],
+    day: 1,
   },
   {
     session: "Breakout Session 3",
@@ -192,14 +191,32 @@ export const SPEAKERS: Speaker[] = [
         ],
       },
     ],
+    day: 1,
   },
   {
     session: "Breakout Session 4",
     name: "Mr. Miko Mel C. Peñaloza",
-    role: "Actor, Former ABS-CBN Segment Assistant Director, Diocese of San Pablo",
+    role: "Actor / Assistant Director | Church Worker, Diocese of San Pablo",
     topic: "BTS: The Production Process",
     extra: "",
     imgUrl: "/speakers/miko-penaloza.jpg",
+    speakerDescriptions: [
+      {
+        title: "Background",
+        descriptions: [
+          "Miko Peñaloza is a filmmaker, actor, assistant director, and church worker serving in the Diocese of San Pablo. With experience in both media production and pastoral ministry, he combines creativity, leadership, and a passion for storytelling in his work. He has served as one of the Assistant Directors of ABS-CBN's Goin' Bulilit, contributing to the development and production of television content for young audiences. Dedicated to both the arts and faith-based service, he continues to use his talents to inspire, educate, and build meaningful connections within the community.",
+        ],
+      },
+      {
+        title: "Work Experience",
+        descriptions: [
+          "TV / Film Actor (2016 to Present): Dolce Amore, ABS-CBN (2016); Hashtag Michael Angelo the Sitcom, GMANEWSTV (2016-2020); Bagani, ABS-CBN (2018); Fantastica, StarCinema (2018); The Spider's Man, See Thru (2019);½ (TV MOVIE), GMA (2019); Parasite Island, ABS-CBN (2019); Princess DayaResse, StarCinema (2020); Hugas, Vivamax (2021); Dear God, RIA Production (2022); Happy ToGetHer, GMA (2023); Pagpag 24/7, MAVx (2024); ConMom, MAVx (2025); Magpakailanman, GMA (2026);",
+          "TV / Film Assistant Director: The Lease, See Thru (2018); Dear God, RIA Production (2021-2022); Goin' Bulilit, ABS-CBN (2024);",
+          "Concert Director: Ginto Concert, Benefit Birthday Concert of Rev. Fr. Conrado J. Rodriguez, With Hadjji Alejandro and Rey Valera (2024); Diocesan Concerts, Diocese of San Pablo (2024-Present); To Be With You Album Launching, St. Luke the Evangelist (2025); Tan-Awa (Concert-TV SHOW), Bente Productions (2025-Present)",
+        ],
+      },
+    ],
+    day: 2,
   },
   {
     session: "Breakout Session 5",
