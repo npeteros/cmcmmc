@@ -13,7 +13,7 @@ export const organizationName = "Roman Catholic Archdiocese of Cebu";
 export const organizationEmail = "thearchdioceseofcebu@gmail.com";
 export const organizationAddress = {
   streetAddress:
-    "Vitalis Building, P. Gomez St., cor. D. Jakosalem St., Brgy. Sto. Nino",
+    "CADComM Office, IEC Tower, Archbishop's Residence Compound, D. Jakosalem St., Cebu City, 6000, Philippines ",
   addressLocality: "Cebu City",
   addressRegion: "Cebu",
   addressCountry: "PH",

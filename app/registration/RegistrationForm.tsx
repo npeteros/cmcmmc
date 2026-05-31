@@ -1605,8 +1605,7 @@ export default function RegistrationForm() {
                     <p>
                       The organizers have arranged free accommodation for 500
                       participants, available on a first-come, first-served
-                      basis from 3:00 PM of October 2 until 12:00 NN (lunch) of
-                      October 4.
+                      basis.
                     </p>
                     <p>
                       The accommodation will provide shared air-conditioned

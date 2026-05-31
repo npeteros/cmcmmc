@@ -43,8 +43,7 @@ export default function Footer() {
           The Roman Catholic Archdiocese of Cebu
         </p>
         <p className="text-[12px] text-white text-center">
-          Vitalis Building, P. Gomez St., cor. D. Jakosalem St., Brgy. Sto.
-          Niño, Cebu City
+          CADComM Office, IEC Tower, Archbishop&apos;s Residence Compound, D. Jakosalem St., Cebu City, 6000, Philippines 
         </p>
         <p className="text-[12px] text-white">thearchdioceseofcebu@gmail.com</p>
 
