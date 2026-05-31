@@ -1093,7 +1093,7 @@ export default function RegistrationForm() {
                               Province <span className="text-[#e63946]">*</span>
                             </FormLabel>
                             <FormControl>
-                              <Input placeholder="Cebu" {...field} />
+                              <Input placeholder="Province" {...field} />
                             </FormControl>
                             <FormMessage />
                           </FormItem>
@@ -1110,7 +1110,7 @@ export default function RegistrationForm() {
                             </FormLabel>
                             <FormControl>
                               <Input
-                                placeholder="University of San Carlos"
+                                placeholder="School name"
                                 {...field}
                               />
                             </FormControl>
