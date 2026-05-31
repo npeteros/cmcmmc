@@ -1,5 +1,5 @@
 export const SESSION_CAP = 300;
-export const ACCOMMODATION_CAP = 5;
+export const ACCOMMODATION_CAP = 500;
 
 export const day1Options = [
   {

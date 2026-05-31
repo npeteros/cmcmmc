@@ -1,47 +1,120 @@
-import { MailerSend, EmailParams, Sender, Recipient } from "mailersend";
+import nodemailer from "nodemailer";
 
-const mailerSend = new MailerSend({
-  apiKey: process.env.MAILERSEND_API_KEY as string,
-});
+export async function sendRegistrationConfirmationEmail({
+  name,
+  email,
+}: {
+  name: string;
+  email: string;
+}) {
+  const recepientName = typeof name === "string" ? name.trim() : "";
+  const recepientEmail = typeof email === "string" ? email.trim() : "";
 
-const FROM_EMAIL = new Sender(
-  "cm.catholicmassmediacongress@gmail.com",
-  "Cebu Metropolitan Catholic Mass Media Congress",
-);
+  if (!recepientName || !recepientEmail) {
+    return {
+      success: false,
+      message: "Please provide both your name and email.",
+    };
+  }
 
-const SUBJECT =
-  "[CMCMMC] Initial Registration Confirmation";
+  const username = process.env.GMAIL_USERNAME;
+  const password = process.env.GMAIL_PASSWORD;
 
-const buildHtmlEmail = (name: string) => {
-  return `
-    <p>Dear ${name},</p>
+  if (!username || !password) {
+    console.error("Missing Gmail credentials.");
+    return {
+      success: false,
+      message: "Email service is not configured.",
+    };
+  }
 
-    <p>We are glad to inform you that you are an official participant to the 2nd Cebu Metropolitan Catholic Mass Media Congress.</p>
+  const transporter = nodemailer.createTransport({
+    host: "smtp.gmail.com",
+    port: 587,
+    secure: false,
+    auth: {
+      user: username,
+      pass: password,
+    },
+  });
 
-    <p>Here are the initial event details:</p>
-    <ul>
-      <li><strong>Dates:</strong> October 3-4, 2026.</li>
-      <li><strong>Time:</strong> October 3 - 7:00 AM - 9:30 PM<br/>October 4 - 7:30 AM - 12:00 NN</li>
-      <li><strong>Venue:</strong> Recoletos Coliseum (USJ-R - Basak Campus)</li>
-    </ul>
+  try {
+    await transporter.sendMail({
+      from: username,
+      to: recepientEmail,
+      subject: `[CMCMMC] Initial Registration Confirmation`,
+      html: `Dear ${recepientName},<br><br>
 
-    <p>We have attached a copy of the receipt of your payment.</p>
+Thank you for signing up for the 2nd Cebu Metropolitan Catholic Mass Media Congress.<br><br>
 
-    <p>Keep posted for the Congress through the Archdiocese's official social media accounts.</p>
+Our team is currently reviewing the information you provided in the registration form. We will send you an update on the status of your registration within the next two (2) weeks.<br><br>
 
-    <p>Don't forget to like, follow, and subscribe to @sugboanongsimbahan on Facebook, Instagram, X, YouTube, and Tiktok. Visit the Archdiocese's official website: thearchdioceseofcebu.com.</p>
-    `
-};
+For clarifications in the future, you can send an email to cm.catholicmassmediacongress@gmail.com.<br><br>
 
-export const sendEmail = async (
-  sentTo: Recipient[],
-) => {
-  const emailParams = new EmailParams()
-    .setFrom(FROM_EMAIL)
-    .setTo(sentTo)
-    .setReplyTo(FROM_EMAIL)
-    .setSubject(SUBJECT)
-    .setHtml(buildHtmlEmail(sentTo[0].name || sentTo[0].email));
+Don't forget to like, follow, and subscribe to the official social media accounts of the Archdiocese of Cebu, @sugboanongsimbahan, on Facebook, Instagram, X, YouTube, and Tiktok. Visit the Archdiocese's official website: thearchdioceseofcebu.com.<br><br>
 
-  await mailerSend.email.send(emailParams);
-};
+Thank you and God bless!`,
+      replyTo: username,
+    });
+    return {
+      success: true,
+      message:
+        "Email sent successfully! If you don't receive it within the next hour, please check your spam folder.",
+    };
+  } catch (error) {
+    console.error(error);
+    return { success: false, message: "Failed to send email." };
+  }
+}
+
+export async function sendContactUsEmail(formData: FormData) {
+  const name = formData.get("name");
+  const email = formData.get("email");
+  const message = formData.get("message");
+
+  const senderName = typeof name === "string" ? name.trim() : "";
+  const senderEmail = typeof email === "string" ? email.trim() : "";
+  const senderMessage = typeof message === "string" ? message.trim() : "";
+
+  if (!senderName || !senderEmail || !senderMessage) {
+    return {
+      success: false,
+      message: "Please complete all contact form fields.",
+    };
+  }
+
+  const username = process.env.GMAIL_USERNAME;
+  const password = process.env.GMAIL_PASSWORD;
+
+  if (!username || !password) {
+    console.error("Missing Gmail credentials.");
+    return {
+      success: false,
+      message: "Email service is not configured.",
+    };
+  }
+
+  const transporter = nodemailer.createTransport({
+    host: "smtp.gmail.com",
+    port: 587,
+    secure: false,
+    auth: {
+      user: username,
+      pass: password,
+    },
+  });
+
+  try {
+    await transporter.sendMail({
+      from: senderEmail,
+      to: username,
+      subject: `New message from ${senderName}`,
+      text: `Name: ${senderName}\nEmail: ${senderEmail}\n\n${senderMessage}`,
+      replyTo: senderEmail,
+    });
+    return { success: true, message: "Email sent successfully!" };
+  } catch (error) {
+    console.error(error);
+    return { success: false, message: "Failed to send email." };
+  }
+}

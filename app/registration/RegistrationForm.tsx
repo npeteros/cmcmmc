@@ -230,6 +230,12 @@ const formSchema = z.object({
   paymentMode: z.enum(["GCash", "BDO"], {
     error: "Select a payment mode.",
   }),
+  transaction_number: z
+    .string()
+    .min(1, "Transaction number is required.")
+    .refine((val) => val.trim().length > 0, {
+      message: "Transaction number is required.",
+    }),
   paymentProof: fileSchema,
 });
 
@@ -283,6 +289,7 @@ const defaultValues: RegistrationValues = {
   day2Session: day2Options[0].value,
   accommodation: "avail",
   paymentMode: "GCash",
+  transaction_number: "",
   paymentProof: undefined as unknown as FileList,
 };
 
@@ -344,7 +351,7 @@ function getStepFields(
     return ["accommodation"];
   }
 
-  return ["paymentMode", "paymentProof"];
+  return ["paymentMode", "paymentProof", "transaction_number"];
 }
 
 function Stepper({ currentStep }: { currentStep: number }) {
@@ -641,6 +648,40 @@ export default function RegistrationForm() {
       form.reset(defaultValues);
       setCurrentStep(0);
       setIsDialogOpen(true);
+
+      try {
+        const response = await fetch("/api/email/registration", {
+          method: "POST",
+          body: JSON.stringify({
+            name: `${data.title} ${data.firstName} ${data.surname}`,
+            email: data.email,
+          }),
+        });
+
+        const result = (await response.json().catch(() => null)) as {
+          success?: boolean;
+          message?: string;
+        } | null;
+
+        if (!response.ok || !result?.success) {
+          throw new Error(
+            result?.message ?? "Failed to send confirmation email.",
+          );
+        }
+
+        toast.success("Confirmation email sent", {
+          description: "We have sent a confirmation email to your inbox.",
+        });
+      } catch (error) {
+        const message =
+          error instanceof Error
+            ? error.message
+            : "We could not send the confirmation email.";
+
+        toast.error("Confirmation email not sent", {
+          description: message,
+        });
+      }
     } catch (error) {
       const msg =
         error instanceof Error
@@ -1711,6 +1752,25 @@ export default function RegistrationForm() {
                                 ))}
                               </SelectContent>
                             </Select>
+                            <FormMessage />
+                          </FormItem>
+                        )}
+                      />
+                      <FormField
+                        control={form.control}
+                        name="transaction_number"
+                        render={({ field }) => (
+                          <FormItem>
+                            <FormLabel>
+                              Transaction Number{" "}
+                              <span className="text-[#e63946]">*</span>
+                            </FormLabel>
+                            <FormControl>
+                              <Input
+                                placeholder="Enter your transaction number"
+                                {...field}
+                              />
+                            </FormControl>
                             <FormMessage />
                           </FormItem>
                         )}
