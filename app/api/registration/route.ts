@@ -52,7 +52,7 @@ export async function POST(request: Request) {
       day2Session: getString(formData, "day2Session"),
       accommodation: getString(formData, "accommodation") as RegistrationSubmissionInput["accommodation"],
       paymentMode: getString(formData, "paymentMode") as RegistrationSubmissionInput["paymentMode"],
-      transactionNumber: getString(formData, "transactionNumber"),
+      transactionNumber: getString(formData, "transaction_number"),
     };
 
     const counts = await getBreakoutSessionCounts();
