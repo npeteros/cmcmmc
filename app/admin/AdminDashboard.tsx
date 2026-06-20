@@ -5,6 +5,7 @@ import Link from "next/link";
 
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
+import DeleteSubmissionButton from "./DeleteSubmissionButton";
 import {
   formatSubmissionDate,
   getAffiliationLabel,
@@ -15,6 +16,8 @@ import {
 
 type FilterValue = "all" | Submission["affiliationType"];
 type PaymentFilterValue = "all" | Submission["paymentMode"];
+type SortKey = "name" | "affiliation" | "organization" | "payment" | "status" | "submitted";
+type SortDir = "asc" | "desc";
 
 function StatCard({ label, value, hint }: { label: string; value: string; hint: string }) {
   return (
@@ -37,15 +40,57 @@ function StatusPill({ status }: { status: Submission["status"] }) {
   return <span className={`inline-flex rounded-full border px-2.5 py-1 text-xs font-semibold ${tone}`}>{status}</span>;
 }
 
+function SortableHeader({
+  label,
+  sortKey,
+  active,
+  dir,
+  onSort,
+}: {
+  label: string;
+  sortKey: SortKey;
+  active: SortKey;
+  dir: SortDir;
+  onSort: (key: SortKey) => void;
+}) {
+  const isActive = active === sortKey;
+  return (
+    <th
+      className="cursor-pointer select-none px-4 py-3"
+      onClick={() => onSort(sortKey)}
+    >
+      <span className="inline-flex items-center gap-1">
+        {label}
+        <span className="text-slate-400">
+          {isActive ? (dir === "asc" ? "↑" : "↓") : <span className="opacity-30">↕</span>}
+        </span>
+      </span>
+    </th>
+  );
+}
+
+const STATUS_ORDER: Record<Submission["status"], number> = { Verified: 0, "Needs review": 1, Pending: 2 };
+
 export default function AdminDashboard({ submissions }: { submissions: Submission[] }) {
   const [query, setQuery] = useState("");
   const [affiliation, setAffiliation] = useState<FilterValue>("all");
   const [paymentMode, setPaymentMode] = useState<PaymentFilterValue>("all");
+  const [sortKey, setSortKey] = useState<SortKey>("submitted");
+  const [sortDir, setSortDir] = useState<SortDir>("desc");
+
+  function handleSort(key: SortKey) {
+    if (key === sortKey) {
+      setSortDir((d) => (d === "asc" ? "desc" : "asc"));
+    } else {
+      setSortKey(key);
+      setSortDir("asc");
+    }
+  }
 
   const filteredSubmissions = useMemo(() => {
     const normalizedQuery = query.trim().toLowerCase();
 
-    return submissions.filter((submission) => {
+    const filtered = submissions.filter((submission) => {
       const searchableText = [
         submission.id,
         getSubmissionDisplayName(submission),
@@ -64,7 +109,34 @@ export default function AdminDashboard({ submissions }: { submissions: Submissio
 
       return matchesQuery && matchesAffiliation && matchesPayment;
     });
-  }, [affiliation, paymentMode, query, submissions]);
+
+    filtered.sort((a, b) => {
+      let cmp = 0;
+      switch (sortKey) {
+        case "name":
+          cmp = `${a.surname} ${a.firstName}`.localeCompare(`${b.surname} ${b.firstName}`);
+          break;
+        case "affiliation":
+          cmp = a.affiliationType.localeCompare(b.affiliationType);
+          break;
+        case "organization":
+          cmp = getSubmissionOrganization(a).localeCompare(getSubmissionOrganization(b));
+          break;
+        case "payment":
+          cmp = a.paymentMode.localeCompare(b.paymentMode);
+          break;
+        case "status":
+          cmp = STATUS_ORDER[a.status] - STATUS_ORDER[b.status];
+          break;
+        case "submitted":
+          cmp = a.submittedAt.localeCompare(b.submittedAt);
+          break;
+      }
+      return sortDir === "asc" ? cmp : -cmp;
+    });
+
+    return filtered;
+  }, [affiliation, paymentMode, query, sortDir, sortKey, submissions]);
 
   const summary = useMemo(() => {
     const total = submissions.length;
@@ -137,12 +209,12 @@ export default function AdminDashboard({ submissions }: { submissions: Submissio
             <table className="min-w-full divide-y divide-slate-200 text-left text-sm">
               <thead className="bg-slate-50 text-xs uppercase tracking-[0.2em] text-slate-500">
                 <tr>
-                  <th className="px-4 py-3">Submission</th>
-                  <th className="px-4 py-3">Affiliation</th>
-                  <th className="px-4 py-3">Organization</th>
-                  <th className="px-4 py-3">Payment</th>
-                  <th className="px-4 py-3">Status</th>
-                  <th className="px-4 py-3">Submitted</th>
+                  <SortableHeader label="Submission" sortKey="name" active={sortKey} dir={sortDir} onSort={handleSort} />
+                  <SortableHeader label="Affiliation" sortKey="affiliation" active={sortKey} dir={sortDir} onSort={handleSort} />
+                  <SortableHeader label="Organization" sortKey="organization" active={sortKey} dir={sortDir} onSort={handleSort} />
+                  <SortableHeader label="Payment" sortKey="payment" active={sortKey} dir={sortDir} onSort={handleSort} />
+                  <SortableHeader label="Status" sortKey="status" active={sortKey} dir={sortDir} onSort={handleSort} />
+                  <SortableHeader label="Submitted" sortKey="submitted" active={sortKey} dir={sortDir} onSort={handleSort} />
                   <th className="px-4 py-3" />
                 </tr>
               </thead>
@@ -161,9 +233,12 @@ export default function AdminDashboard({ submissions }: { submissions: Submissio
                       <td className="px-4 py-4"><StatusPill status={submission.status} /></td>
                       <td className="px-4 py-4 text-slate-600">{formatSubmissionDate(submission.submittedAt)}</td>
                       <td className="px-4 py-4 text-right">
-                        <Button asChild variant="ghost" size="sm">
-                          <Link href={`/admin/submissions/${encodeURIComponent(submission.id)}`}>View</Link>
-                        </Button>
+                        <div className="flex items-center justify-end gap-1">
+                          <Button asChild variant="ghost" size="sm">
+                            <Link href={`/admin/submissions/${encodeURIComponent(submission.id)}`}>View</Link>
+                          </Button>
+                          <DeleteSubmissionButton submissionId={submission.id} />
+                        </div>
                       </td>
                     </tr>
                   ))

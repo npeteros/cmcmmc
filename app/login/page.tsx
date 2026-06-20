@@ -11,6 +11,11 @@ export const metadata: Metadata = {
 };
 
 export default async function LoginPage() {
+  console.log(
+    "Login: ",
+    process.env.ADMIN_USERNAME,
+    process.env.ADMIN_PASSWORD,
+  );
   if (await isAdminSessionActive()) {
     redirect("/admin");
   }
@@ -28,7 +33,8 @@ export default async function LoginPage() {
                 CM-CMMC submission dashboard
               </h1>
               <p className="mt-4 max-w-md text-sm leading-6 text-white/75">
-                Review incoming registrations, inspect uploaded files, and export records from one protected place.
+                Review incoming registrations, inspect uploaded files, and
+                export records from one protected place.
               </p>
             </div>
           </section>

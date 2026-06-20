@@ -6,7 +6,6 @@ import {
   mockSubmissions,
   type Submission,
   type SubmissionStatus,
-  formatSubmissionDate,
   getAffiliationLabel,
   getSubmissionOrganization,
 } from "@/lib/admin-submissions";
@@ -274,7 +273,15 @@ export async function createSubmissionCsv(submissions: Submission[]) {
 
       return [
         submission.id,
-        formatSubmissionDate(submission.submittedAt),
+        new Intl.DateTimeFormat("sv-SE", {
+          year: "numeric",
+          month: "2-digit",
+          day: "2-digit",
+          hour: "2-digit",
+          minute: "2-digit",
+          second: "2-digit",
+          timeZone: "Asia/Manila",
+        }).format(new Date(submission.submittedAt)),
         submission.status,
         submission.title,
         submission.firstName,
@@ -476,6 +483,40 @@ export async function createRegistrationSubmission(
   }
 
   return mapRowToSubmission(data as SubmissionRow);
+}
+
+export async function deleteSubmission(id: string) {
+  const cookieStore = await cookies();
+  const supabase = createClient(cookieStore);
+
+  if (!supabase) {
+    const idx = mockSubmissions.findIndex((s) => s.id === id);
+    if (idx !== -1) mockSubmissions.splice(idx, 1);
+    return;
+  }
+
+  const { data } = await supabase
+    .from("submissions")
+    .select("id_upload_path, payment_proof_path")
+    .eq("id", id)
+    .maybeSingle();
+
+  if (data) {
+    const paths = [
+      (data as { id_upload_path?: string | null }).id_upload_path,
+      (data as { payment_proof_path?: string | null }).payment_proof_path,
+    ].filter(Boolean) as string[];
+
+    if (paths.length > 0) {
+      await supabase.storage.from(getStorageBucketName()).remove(paths);
+    }
+  }
+
+  const { error } = await supabase.from("submissions").delete().eq("id", id);
+
+  if (error) {
+    throw new Error(error.message);
+  }
 }
 
 export async function updateSubmissionStatus(

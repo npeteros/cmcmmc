@@ -8,7 +8,7 @@ import {
   SUBMISSION_STATUSES,
   type SubmissionStatus,
 } from "@/lib/admin-submissions";
-import { updateSubmissionStatus } from "@/lib/submissions.server";
+import { deleteSubmission, updateSubmissionStatus } from "@/lib/submissions.server";
 
 export type UpdateSubmissionStatusState = {
   status: "idle" | "success" | "error";
@@ -53,4 +53,33 @@ export async function updateSubmissionStatusAction(
     status: "success",
     message: `Status updated to ${status}.`,
   };
+}
+
+export type DeleteSubmissionState = {
+  status: "idle" | "success" | "error";
+  message?: string;
+};
+
+export async function deleteSubmissionAction(
+  submissionId: string,
+): Promise<DeleteSubmissionState> {
+  if (!(await isAdminSessionActive())) {
+    redirect("/login");
+  }
+
+  const id = submissionId.trim();
+
+  if (!id) {
+    return { status: "error", message: "Missing submission ID." };
+  }
+
+  try {
+    await deleteSubmission(id);
+  } catch {
+    return { status: "error", message: "Failed to delete submission." };
+  }
+
+  revalidatePath("/admin");
+
+  return { status: "success" };
 }
