@@ -1452,7 +1452,7 @@ export default function RegistrationForm() {
                       render={({ field }) => (
                         <FormItem className="md:col-span-2">
                           <FormLabel>
-                            Upload ID <span className="text-[#e63946]">*</span>
+                            Upload Valid ID <span className="text-[#e63946]">*</span>
                           </FormLabel>
                           <FormControl>
                             <Input
