@@ -219,7 +219,7 @@ export default async function SubmissionPage({ params }: SubmissionPageProps) {
             <div className="grid gap-4 md:grid-cols-2">
               <div className="rounded-xl border border-slate-200 bg-white p-4">
                 <p className="text-xs font-semibold uppercase tracking-[0.2em] text-slate-400">
-                  ID upload
+                  Valid ID upload
                 </p>
                 <p className="mt-2 text-sm font-medium text-slate-700 truncate">
                   {submission.idUploadName}
