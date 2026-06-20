@@ -11,7 +11,7 @@ function buildParticipationConfirmationHtml(name: string): string {
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Participation Confirmation – 2nd CMCMMC</title>
 </head>
-<body style="margin:0;padding:0;background-color:#f0f2f5;font-family:Georgia,'Times New Roman',serif;">
+<body style="margin:0;padding:0;background-color:#f0f2f5;font-family:'Trebuchet MS',Helvetica,Arial,sans-serif;">
   <table role="presentation" cellpadding="0" cellspacing="0" border="0" width="100%" style="background-color:#f0f2f5;">
     <tr>
       <td align="center" style="padding:32px 16px;">
@@ -96,8 +96,8 @@ function buildParticipationConfirmationHtml(name: string): string {
           <!-- Social handle links -->
           <tr>
             <td align="center" style="padding:0 48px 8px;">
-              <a href="https://www.facebook.com/sugboanongsimbahan" style="display:block;font-family:Arial,sans-serif;font-size:14px;color:#1a78c2;text-decoration:none;margin-bottom:4px;">@sugboanongsimbahan</a>
-              <a href="https://thearchdioceseofcebu.com" style="display:block;font-family:Arial,sans-serif;font-size:14px;color:#1a78c2;text-decoration:none;">thearchdioceseofcebu.com</a>
+              <a href="https://www.facebook.com/sugboanongsimbahan" style="display:block;font-family:'Trebuchet MS',Helvetica,Arial,sans-serif;font-size:14px;color:#1a78c2;text-decoration:none;margin-bottom:4px;">@sugboanongsimbahan</a>
+              <a href="https://thearchdioceseofcebu.com" style="display:block;font-family:'Trebuchet MS',Helvetica,Arial,sans-serif;font-size:14px;color:#1a78c2;text-decoration:none;">thearchdioceseofcebu.com</a>
             </td>
           </tr>
 
