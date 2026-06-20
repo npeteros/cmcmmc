@@ -11,11 +11,6 @@ export const metadata: Metadata = {
 };
 
 export default async function LoginPage() {
-  console.log(
-    "Login: ",
-    process.env.ADMIN_USERNAME,
-    process.env.ADMIN_PASSWORD,
-  );
   if (await isAdminSessionActive()) {
     redirect("/admin");
   }

@@ -7,8 +7,10 @@ import { isAdminSessionActive } from "@/lib/admin-auth";
 import {
   SUBMISSION_STATUSES,
   type SubmissionStatus,
+  getSubmissionDisplayName,
 } from "@/lib/admin-submissions";
 import { deleteSubmission, updateSubmissionStatus } from "@/lib/submissions.server";
+import { sendParticipationConfirmationEmail } from "@/lib/mail-service";
 
 export type UpdateSubmissionStatusState = {
   status: "idle" | "success" | "error";
@@ -44,6 +46,13 @@ export async function updateSubmissionStatusAction(
       status: "error",
       message: "Submission not found.",
     };
+  }
+
+  if (status === "Verified") {
+    const name = getSubmissionDisplayName(updatedSubmission);
+    sendParticipationConfirmationEmail({ name, email: updatedSubmission.email }).catch(
+      (err) => console.error("Failed to send participation confirmation email:", err),
+    );
   }
 
   revalidatePath("/admin");
