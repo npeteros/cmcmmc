@@ -1109,10 +1109,7 @@ export default function RegistrationForm() {
                               <span className="text-[#e63946]">*</span>
                             </FormLabel>
                             <FormControl>
-                              <Input
-                                placeholder="School name"
-                                {...field}
-                              />
+                              <Input placeholder="School name" {...field} />
                             </FormControl>
                             <FormMessage />
                           </FormItem>
@@ -1452,7 +1449,8 @@ export default function RegistrationForm() {
                       render={({ field }) => (
                         <FormItem className="md:col-span-2">
                           <FormLabel>
-                            Upload Valid ID <span className="text-[#e63946]">*</span>
+                            Upload Valid ID{" "}
+                            <span className="text-[#e63946]">*</span>
                           </FormLabel>
                           <FormControl>
                             <Input
@@ -1711,7 +1709,11 @@ export default function RegistrationForm() {
                         <p>Account Number: 006108017442</p>
                       </div>
                       <Image
-                        src="/CMCMMC_GCash_QR.jpg"
+                        src={
+                          new Date() >= new Date("2026-07-01")
+                            ? "/CMCMMC_GCash_QR-2.jpg"
+                            : "/CMCMMC_GCash_QR-1.jpg"
+                        }
                         alt="GCash QR code placeholder"
                         width={220}
                         height={220}
