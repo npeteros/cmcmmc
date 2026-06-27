@@ -9,7 +9,7 @@ import {
   type SubmissionStatus,
   getSubmissionDisplayName,
 } from "@/lib/admin-submissions";
-import { deleteSubmission, updateSubmissionStatus } from "@/lib/submissions.server";
+import { deleteSubmission, updateSubmissionStatus, uploadInvoice } from "@/lib/submissions.server";
 import { sendParticipationConfirmationEmail } from "@/lib/mail-service";
 
 export type UpdateSubmissionStatusState = {
@@ -39,6 +39,29 @@ export async function updateSubmissionStatusAction(
     };
   }
 
+  let invoiceFile: File | null = null;
+  let invoiceBuffer: Buffer | undefined;
+
+  if (status === "Verified") {
+    const raw = formData.get("invoice");
+
+    if (!(raw instanceof File) || raw.size === 0) {
+      return {
+        status: "error",
+        message: "Please upload an invoice PDF before verifying.",
+      };
+    }
+
+    if (raw.type !== "application/pdf") {
+      return {
+        status: "error",
+        message: "Invoice must be a PDF file.",
+      };
+    }
+
+    invoiceFile = raw;
+  }
+
   const updatedSubmission = await updateSubmissionStatus(id, status);
 
   if (!updatedSubmission) {
@@ -48,11 +71,26 @@ export async function updateSubmissionStatusAction(
     };
   }
 
-  if (status === "Verified") {
-    const name = getSubmissionDisplayName(updatedSubmission);
-    sendParticipationConfirmationEmail({ name, email: updatedSubmission.email }).catch(
-      (err) => console.error("Failed to send participation confirmation email:", err),
-    );
+  if (invoiceFile) {
+    try {
+      const result = await uploadInvoice(id, invoiceFile);
+      invoiceBuffer = result.invoiceBuffer;
+    } catch {
+      return {
+        status: "error",
+        message: "Failed to upload invoice. Please try again.",
+      };
+    }
+
+    if (process.env.SEND_CONFIRMATION_EMAIL === "true") {
+      const name = getSubmissionDisplayName(updatedSubmission);
+      sendParticipationConfirmationEmail({
+        name,
+        email: updatedSubmission.email,
+        invoiceBuffer,
+        invoiceFileName: invoiceFile.name,
+      }).catch((err) => console.error("Failed to send participation confirmation email:", err));
+    }
   }
 
   revalidatePath("/admin");

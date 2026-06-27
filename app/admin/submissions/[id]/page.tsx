@@ -120,9 +120,8 @@ export default async function SubmissionPage({ params }: SubmissionPageProps) {
   }
 
   const idUploadUrl = await getSubmissionFileUrl(submission.idUploadPath);
-  const paymentProofUrl = await getSubmissionFileUrl(
-    submission.paymentProofPath,
-  );
+  const paymentProofUrl = await getSubmissionFileUrl(submission.paymentProofPath);
+  const invoiceUrl = await getSubmissionFileUrl(submission.invoicePath || undefined);
 
   const day1SessionLabel =
     day1Options.find((option) => option.value === submission.day1Session)
@@ -246,6 +245,24 @@ export default async function SubmissionPage({ params }: SubmissionPageProps) {
                   <a
                     className="mt-2 inline-block text-sm font-semibold text-[#2aadb5] hover:underline"
                     href={paymentProofUrl}
+                    target="_blank"
+                    rel="noreferrer"
+                  >
+                    Open file
+                  </a>
+                ) : null}
+              </div>
+              <div className="rounded-xl border border-slate-200 bg-white p-4">
+                <p className="text-xs font-semibold uppercase tracking-[0.2em] text-slate-400">
+                  Invoice
+                </p>
+                <p className="mt-2 text-sm font-medium text-slate-700 truncate">
+                  {submission.invoiceName || "—"}
+                </p>
+                {invoiceUrl ? (
+                  <a
+                    className="mt-2 inline-block text-sm font-semibold text-[#2aadb5] hover:underline"
+                    href={invoiceUrl}
                     target="_blank"
                     rel="noreferrer"
                   >

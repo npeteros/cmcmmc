@@ -120,9 +120,13 @@ function buildParticipationConfirmationHtml(name: string): string {
 export async function sendParticipationConfirmationEmail({
   name,
   email,
+  invoiceBuffer,
+  invoiceFileName,
 }: {
   name: string;
   email: string;
+  invoiceBuffer?: Buffer;
+  invoiceFileName?: string;
 }) {
   const recipientName = typeof name === "string" ? name.trim() : "";
   const recipientEmail = typeof email === "string" ? email.trim() : "";
@@ -172,6 +176,15 @@ export async function sendParticipationConfirmationEmail({
         "List-Unsubscribe": `<mailto:${username}?subject=unsubscribe>`,
         "X-Priority": "3",
       },
+      attachments: invoiceBuffer
+        ? [
+            {
+              filename: invoiceFileName ?? "invoice.pdf",
+              content: invoiceBuffer,
+              contentType: "application/pdf",
+            },
+          ]
+        : [],
     });
 
     return {

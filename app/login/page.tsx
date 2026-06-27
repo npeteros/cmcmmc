@@ -15,6 +15,9 @@ export default async function LoginPage() {
     redirect("/admin");
   }
 
+  console.log("Admin username:", process.env.ADMIN_USERNAME);
+  console.log("Admin password:", process.env.ADMIN_PASSWORD);
+
   return (
     <main className="min-h-screen bg-[radial-gradient(circle_at_top,#f8fbff,#eef4ff_50%,#dfe9f6_100%)] px-4 py-16">
       <div className="mx-auto flex w-full max-w-5xl items-center justify-center">

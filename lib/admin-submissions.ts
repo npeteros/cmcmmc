@@ -40,6 +40,8 @@ export type Submission = {
   paymentProofName: string;
   idUploadPath?: string;
   paymentProofPath?: string;
+  invoiceName: string;
+  invoicePath: string;
 };
 
 export const mockSubmissions: Submission[] = [
@@ -79,6 +81,8 @@ export const mockSubmissions: Submission[] = [
     transactionNumber: "GCASH-001",
     idUploadName: "albert-garong-id.pdf",
     paymentProofName: "gcash-receipt-albert.pdf",
+    invoiceName: "",
+    invoicePath: "",
   },
   {
     id: "CMC-002",
@@ -116,6 +120,8 @@ export const mockSubmissions: Submission[] = [
     transactionNumber: "BDO-002",
     idUploadName: "april-ortigas-id.png",
     paymentProofName: "bdo-transfer-april.png",
+    invoiceName: "",
+    invoicePath: "",
   },
   {
     id: "CMC-003",
@@ -153,6 +159,8 @@ export const mockSubmissions: Submission[] = [
     transactionNumber: "GCASH-003",
     idUploadName: "aubry-lerio-id.webp",
     paymentProofName: "gcash-proof-aubry.pdf",
+    invoiceName: "",
+    invoicePath: "",
   },
 ];
 

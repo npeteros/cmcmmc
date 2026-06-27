@@ -1,6 +1,6 @@
 "use client";
 
-import { useActionState, useEffect } from "react";
+import { useActionState, useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
 import { toast } from "sonner";
 
@@ -21,6 +21,7 @@ export default function StatusUpdateForm({
   currentStatus,
 }: StatusUpdateFormProps) {
   const router = useRouter();
+  const [selectedStatus, setSelectedStatus] = useState<SubmissionStatus>(currentStatus);
   const [state, formAction, isPending] = useActionState(
     updateSubmissionStatusAction,
     {
@@ -53,7 +54,8 @@ export default function StatusUpdateForm({
       <input type="hidden" name="id" value={submissionId} />
       <select
         name="status"
-        defaultValue={currentStatus}
+        value={selectedStatus}
+        onChange={(e) => setSelectedStatus(e.target.value as SubmissionStatus)}
         className="h-10 w-full rounded-md border border-input bg-background px-3 text-sm ring-offset-background transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2"
         disabled={isPending}
       >
@@ -63,6 +65,21 @@ export default function StatusUpdateForm({
           </option>
         ))}
       </select>
+      {selectedStatus === "Verified" && (
+        <div className="space-y-1">
+          <label className="text-xs font-semibold uppercase tracking-[0.2em] text-slate-400">
+            Invoice PDF
+          </label>
+          <input
+            type="file"
+            name="invoice"
+            accept="application/pdf"
+            required
+            disabled={isPending}
+            className="block w-full text-sm text-slate-600 file:mr-3 file:rounded-md file:border-0 file:bg-slate-100 file:px-3 file:py-1.5 file:text-xs file:font-semibold file:text-slate-700 hover:file:bg-slate-200"
+          />
+        </div>
+      )}
       <Button type="submit" className="w-full" disabled={isPending}>
         {isPending ? "Saving..." : "Save status"}
       </Button>

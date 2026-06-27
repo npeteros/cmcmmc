@@ -56,6 +56,8 @@ type SubmissionRow = {
   payment_proof_name: string;
   id_upload_path: string | null;
   payment_proof_path: string | null;
+  invoice_name: string;
+  invoice_path: string;
 };
 
 export type RegistrationSubmissionInput = {
@@ -130,16 +132,49 @@ function mapRowToSubmission(row: SubmissionRow): Submission {
     paymentProofName: row.payment_proof_name,
     idUploadPath: row.id_upload_path ?? undefined,
     paymentProofPath: row.payment_proof_path ?? undefined,
+    invoiceName: row.invoice_name,
+    invoicePath: row.invoice_path,
   };
 }
 
 function buildStoragePath(
   submissionId: string,
-  kind: "id-upload" | "payment-proof",
+  kind: "id-upload" | "payment-proof" | "invoice",
   fileName: string,
 ) {
   const safeName = fileName.trim().replace(/[^a-zA-Z0-9._-]+/g, "-");
   return `submissions/${submissionId}/${kind}/${randomUUID()}-${safeName}`;
+}
+
+export async function uploadInvoice(
+  submissionId: string,
+  file: File,
+): Promise<{ invoicePath: string; invoiceBuffer: Buffer }> {
+  const cookieStore = await cookies();
+  const supabase = createClient(cookieStore);
+  const bucketName = getStorageBucketName();
+
+  const invoicePath = buildStoragePath(submissionId, "invoice", file.name);
+  const arrayBuffer = await file.arrayBuffer();
+  const invoiceBuffer = Buffer.from(arrayBuffer);
+
+  const { error } = await supabase.storage
+    .from(bucketName)
+    .upload(invoicePath, invoiceBuffer, {
+      contentType: "application/pdf",
+      upsert: true,
+    });
+
+  if (error) {
+    throw new Error(error.message);
+  }
+
+  await supabase
+    .from("submissions")
+    .update({ invoice_name: file.name, invoice_path: invoicePath })
+    .eq("id", submissionId);
+
+  return { invoicePath, invoiceBuffer };
 }
 
 export type BreakoutSessionCounts = {
