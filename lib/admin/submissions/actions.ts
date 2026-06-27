@@ -42,7 +42,7 @@ export async function updateSubmissionStatusAction(
   let invoiceFile: File | null = null;
   let invoiceBuffer: Buffer | undefined;
 
-  if (status === "Verified") {
+  if (status === "Verified" && process.env.SEND_CONFIRMATION_EMAIL === "true") {
     const raw = formData.get("invoice");
 
     if (!(raw instanceof File) || raw.size === 0) {
