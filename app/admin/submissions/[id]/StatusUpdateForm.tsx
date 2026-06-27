@@ -14,11 +14,13 @@ import { updateSubmissionStatusAction } from "@/lib/admin/submissions/actions";
 type StatusUpdateFormProps = {
   submissionId: string;
   currentStatus: SubmissionStatus;
+  requireInvoice: boolean;
 };
 
 export default function StatusUpdateForm({
   submissionId,
   currentStatus,
+  requireInvoice,
 }: StatusUpdateFormProps) {
   const router = useRouter();
   const [selectedStatus, setSelectedStatus] = useState<SubmissionStatus>(currentStatus);
@@ -65,7 +67,7 @@ export default function StatusUpdateForm({
           </option>
         ))}
       </select>
-      {selectedStatus === "Verified" && (
+      {requireInvoice && selectedStatus === "Verified" && (
         <div className="space-y-1">
           <label className="text-xs font-semibold uppercase tracking-[0.2em] text-slate-400">
             Invoice PDF

@@ -294,6 +294,7 @@ export default async function SubmissionPage({ params }: SubmissionPageProps) {
           <StatusUpdateForm
             submissionId={submission.id}
             currentStatus={submission.status}
+            requireInvoice={process.env.SEND_CONFIRMATION_EMAIL === "true"}
           />
 
           <div className="space-y-3 rounded-2xl border border-slate-200 bg-slate-50 p-5 text-sm text-slate-600">
