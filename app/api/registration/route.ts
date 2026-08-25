@@ -5,6 +5,7 @@ import {
   getBreakoutSessionCounts,
   type RegistrationSubmissionInput,
 } from "@/lib/submissions.server";
+import { isRegistrationOpen } from "@/lib/registration-status";
 
 function getString(formData: FormData, key: string) {
   return String(formData.get(key) ?? "").trim();
@@ -20,6 +21,13 @@ function assertFile(value: FormDataEntryValue | null, key: string) {
 
 export async function POST(request: Request) {
   try {
+    if (!isRegistrationOpen()) {
+      return NextResponse.json(
+        { ok: false, error: "Registration is closed." },
+        { status: 403 },
+      );
+    }
+
     const formData = await request.formData();
 
     const payload: RegistrationSubmissionInput = {
