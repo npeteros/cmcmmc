@@ -1,8 +1,7 @@
 import Link from "next/link";
-import { redirect } from "next/navigation";
 
 import { Button } from "@/components/ui/button";
-import { isAdminSessionActive } from "@/lib/admin-auth";
+import { requireAdminSession } from "@/lib/admin-auth";
 
 import { logoutAction } from "@/lib/auth/actions";
 
@@ -11,9 +10,7 @@ export default async function AdminLayout({
 }: Readonly<{
   children: React.ReactNode;
 }>) {
-  if (!(await isAdminSessionActive())) {
-    redirect("/login");
-  }
+  await requireAdminSession();
 
   return (
     <div className="min-h-screen bg-slate-50 text-slate-900">

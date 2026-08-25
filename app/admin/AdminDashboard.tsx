@@ -6,6 +6,7 @@ import Link from "next/link";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import DeleteSubmissionButton from "./DeleteSubmissionButton";
+import ShowQrCodeButton from "./ShowQrCodeButton";
 import {
   formatSubmissionDate,
   getAffiliationLabel,
@@ -237,6 +238,10 @@ export default function AdminDashboard({ submissions }: { submissions: Submissio
                           <Button asChild variant="ghost" size="sm">
                             <Link href={`/admin/submissions/${encodeURIComponent(submission.id)}`}>View</Link>
                           </Button>
+                          <ShowQrCodeButton
+                            submissionId={submission.id}
+                            displayName={getSubmissionDisplayName(submission)}
+                          />
                           <DeleteSubmissionButton submissionId={submission.id} />
                         </div>
                       </td>

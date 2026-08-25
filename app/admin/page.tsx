@@ -17,9 +17,6 @@ export default async function AdminPage() {
         <div className="mb-8">
           <p className="text-xs font-semibold uppercase tracking-[0.35em] text-[#2aadb5]">Protected area</p>
           <h1 className="mt-3 text-3xl font-semibold text-[#1a2e5a] md:text-4xl">Submission dashboard</h1>
-          <p className="mt-3 max-w-3xl text-sm text-slate-600">
-            This first version uses mock records so we can validate the review flow, filters, and export actions before connecting a real database.
-          </p>
         </div>
 
         <AdminDashboard submissions={submissions} />

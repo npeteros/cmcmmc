@@ -1,6 +1,7 @@
 import "server-only";
 
 import { cookies } from "next/headers";
+import { redirect } from "next/navigation";
 
 export const ADMIN_SESSION_COOKIE = "cmcmmc-admin-session";
 export const ADMIN_SESSION_TOKEN = "authenticated";
@@ -10,6 +11,12 @@ export const ADMIN_PASSWORD = process.env.ADMIN_PASSWORD;
 export async function isAdminSessionActive() {
   const cookieStore = await cookies();
   return cookieStore.get(ADMIN_SESSION_COOKIE)?.value === ADMIN_SESSION_TOKEN;
+}
+
+export async function requireAdminSession() {
+  if (!(await isAdminSessionActive())) {
+    redirect("/login");
+  }
 }
 
 export function areAdminCredentialsValid(username: string, password: string) {

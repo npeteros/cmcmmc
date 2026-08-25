@@ -58,6 +58,11 @@ type SubmissionRow = {
   payment_proof_path: string | null;
   invoice_name: string;
   invoice_path: string;
+  day_one_attendance: string | null;
+  day_two_attendance: string | null;
+  day_one_breakout_attendance: string | null;
+  day_two_breakout_attendance: string | null;
+  kit_received: boolean;
 };
 
 export type RegistrationSubmissionInput = {
@@ -134,6 +139,11 @@ function mapRowToSubmission(row: SubmissionRow): Submission {
     paymentProofPath: row.payment_proof_path ?? undefined,
     invoiceName: row.invoice_name,
     invoicePath: row.invoice_path,
+    dayOneAttendance: row.day_one_attendance ?? null,
+    dayTwoAttendance: row.day_two_attendance ?? null,
+    dayOneBreakoutAttendance: row.day_one_breakout_attendance ?? null,
+    dayTwoBreakoutAttendance: row.day_two_breakout_attendance ?? null,
+    kitReceived: row.kit_received ?? false,
   };
 }
 
@@ -584,4 +594,214 @@ export async function updateSubmissionStatus(
   }
 
   return data ? mapRowToSubmission(data as SubmissionRow) : null;
+}
+
+export type AttendanceMode =
+  | "dayOneAttendance"
+  | "dayTwoAttendance"
+  | "dayOneBreakoutAttendance"
+  | "dayTwoBreakoutAttendance";
+
+const ATTENDANCE_MODE_TO_COLUMN: Record<AttendanceMode, keyof SubmissionRow> = {
+  dayOneAttendance: "day_one_attendance",
+  dayTwoAttendance: "day_two_attendance",
+  dayOneBreakoutAttendance: "day_one_breakout_attendance",
+  dayTwoBreakoutAttendance: "day_two_breakout_attendance",
+};
+
+const ATTENDANCE_MODE_TO_FIELD: Record<AttendanceMode, keyof Submission> = {
+  dayOneAttendance: "dayOneAttendance",
+  dayTwoAttendance: "dayTwoAttendance",
+  dayOneBreakoutAttendance: "dayOneBreakoutAttendance",
+  dayTwoBreakoutAttendance: "dayTwoBreakoutAttendance",
+};
+
+export type MarkArrivalResult = {
+  alreadyArrived: boolean;
+  oldData: string | null;
+  newData: Submission;
+};
+
+export async function markSubmissionArrival(
+  id: string,
+  mode: AttendanceMode,
+  opts: { override?: boolean } = {},
+): Promise<MarkArrivalResult | null> {
+  const column = ATTENDANCE_MODE_TO_COLUMN[mode];
+  const field = ATTENDANCE_MODE_TO_FIELD[mode];
+  const cookieStore = await cookies();
+  const supabase = createClient(cookieStore);
+
+  if (!supabase) {
+    const submission = mockSubmissions.find((item) => item.id === id);
+
+    if (!submission) {
+      return null;
+    }
+
+    const oldData = submission[field] as string | null;
+
+    if (oldData && !opts.override) {
+      return { alreadyArrived: true, oldData, newData: submission };
+    }
+
+    (submission as unknown as Record<string, string>)[field] = new Date().toISOString();
+    return { alreadyArrived: false, oldData, newData: submission };
+  }
+
+  const { data: existing, error: existingError } = await supabase
+    .from("submissions")
+    .select("*")
+    .eq("id", id)
+    .maybeSingle();
+
+  if (existingError) {
+    throw new Error(existingError.message);
+  }
+
+  if (!existing) {
+    return null;
+  }
+
+  const existingRow = existing as SubmissionRow;
+  const oldData = (existingRow[column] as string | null) ?? null;
+
+  if (oldData && !opts.override) {
+    return { alreadyArrived: true, oldData, newData: mapRowToSubmission(existingRow) };
+  }
+
+  const { data, error } = await supabase
+    .from("submissions")
+    .update({ [column]: new Date().toISOString() })
+    .eq("id", id)
+    .select("*")
+    .maybeSingle();
+
+  if (error) {
+    throw new Error(error.message);
+  }
+
+  if (!data) {
+    return null;
+  }
+
+  return { alreadyArrived: false, oldData, newData: mapRowToSubmission(data as SubmissionRow) };
+}
+
+export type ClearArrivalResult = {
+  oldData: string | null;
+  newData: Submission;
+};
+
+export async function clearSubmissionArrival(
+  id: string,
+  mode: AttendanceMode,
+): Promise<ClearArrivalResult | null> {
+  const column = ATTENDANCE_MODE_TO_COLUMN[mode];
+  const field = ATTENDANCE_MODE_TO_FIELD[mode];
+  const cookieStore = await cookies();
+  const supabase = createClient(cookieStore);
+
+  if (!supabase) {
+    const submission = mockSubmissions.find((item) => item.id === id);
+
+    if (!submission) {
+      return null;
+    }
+
+    const oldData = submission[field] as string | null;
+    (submission as unknown as Record<string, string | null>)[field] = null;
+    return { oldData, newData: submission };
+  }
+
+  const { data: existing, error: existingError } = await supabase
+    .from("submissions")
+    .select("*")
+    .eq("id", id)
+    .maybeSingle();
+
+  if (existingError) {
+    throw new Error(existingError.message);
+  }
+
+  if (!existing) {
+    return null;
+  }
+
+  const oldData = ((existing as SubmissionRow)[column] as string | null) ?? null;
+
+  const { data, error } = await supabase
+    .from("submissions")
+    .update({ [column]: null })
+    .eq("id", id)
+    .select("*")
+    .maybeSingle();
+
+  if (error) {
+    throw new Error(error.message);
+  }
+
+  if (!data) {
+    return null;
+  }
+
+  return { oldData, newData: mapRowToSubmission(data as SubmissionRow) };
+}
+
+export type SetKitReceivedResult = {
+  oldData: boolean;
+  newData: Submission;
+};
+
+export async function setKitReceived(
+  id: string,
+  received: boolean,
+): Promise<SetKitReceivedResult | null> {
+  const cookieStore = await cookies();
+  const supabase = createClient(cookieStore);
+
+  if (!supabase) {
+    const submission = mockSubmissions.find((item) => item.id === id);
+
+    if (!submission) {
+      return null;
+    }
+
+    const oldData = submission.kitReceived;
+    submission.kitReceived = received;
+    return { oldData, newData: submission };
+  }
+
+  const { data: existing, error: existingError } = await supabase
+    .from("submissions")
+    .select("*")
+    .eq("id", id)
+    .maybeSingle();
+
+  if (existingError) {
+    throw new Error(existingError.message);
+  }
+
+  if (!existing) {
+    return null;
+  }
+
+  const oldData = (existing as SubmissionRow).kit_received ?? false;
+
+  const { data, error } = await supabase
+    .from("submissions")
+    .update({ kit_received: received })
+    .eq("id", id)
+    .select("*")
+    .maybeSingle();
+
+  if (error) {
+    throw new Error(error.message);
+  }
+
+  if (!data) {
+    return null;
+  }
+
+  return { oldData, newData: mapRowToSubmission(data as SubmissionRow) };
 }

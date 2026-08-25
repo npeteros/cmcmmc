@@ -42,6 +42,11 @@ export type Submission = {
   paymentProofPath?: string;
   invoiceName: string;
   invoicePath: string;
+  dayOneAttendance: string | null;
+  dayTwoAttendance: string | null;
+  dayOneBreakoutAttendance: string | null;
+  dayTwoBreakoutAttendance: string | null;
+  kitReceived: boolean;
 };
 
 export const mockSubmissions: Submission[] = [
@@ -83,6 +88,11 @@ export const mockSubmissions: Submission[] = [
     paymentProofName: "gcash-receipt-albert.pdf",
     invoiceName: "",
     invoicePath: "",
+    dayOneAttendance: null,
+    dayTwoAttendance: null,
+    dayOneBreakoutAttendance: null,
+    dayTwoBreakoutAttendance: null,
+    kitReceived: false,
   },
   {
     id: "CMC-002",
@@ -122,6 +132,11 @@ export const mockSubmissions: Submission[] = [
     paymentProofName: "bdo-transfer-april.png",
     invoiceName: "",
     invoicePath: "",
+    dayOneAttendance: null,
+    dayTwoAttendance: null,
+    dayOneBreakoutAttendance: null,
+    dayTwoBreakoutAttendance: null,
+    kitReceived: false,
   },
   {
     id: "CMC-003",
@@ -161,6 +176,11 @@ export const mockSubmissions: Submission[] = [
     paymentProofName: "gcash-proof-aubry.pdf",
     invoiceName: "",
     invoicePath: "",
+    dayOneAttendance: null,
+    dayTwoAttendance: null,
+    dayOneBreakoutAttendance: null,
+    dayTwoBreakoutAttendance: null,
+    kitReceived: false,
   },
 ];
 
