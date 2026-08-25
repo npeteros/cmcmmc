@@ -392,6 +392,181 @@ export async function listSubmissions() {
   return (data ?? []).map((row) => mapRowToSubmission(row as SubmissionRow));
 }
 
+export type SubmissionSortKey =
+  | "name"
+  | "affiliation"
+  | "organization"
+  | "payment"
+  | "status"
+  | "submitted";
+
+export type ListSubmissionsPageParams = {
+  page?: number;
+  pageSize?: number;
+  query?: string;
+  affiliation?: Submission["affiliationType"] | "all";
+  paymentMode?: Submission["paymentMode"] | "all";
+  sortKey?: SubmissionSortKey;
+  sortDir?: "asc" | "desc";
+};
+
+export type ListSubmissionsPageResult = {
+  submissions: Submission[];
+  total: number;
+  page: number;
+  pageSize: number;
+};
+
+const SORT_COLUMNS: Record<SubmissionSortKey, keyof SubmissionRow> = {
+  name: "surname",
+  affiliation: "affiliation_type",
+  organization: "organization_name",
+  payment: "payment_mode",
+  status: "status",
+  submitted: "submitted_at",
+};
+
+const SEARCH_COLUMNS = [
+  "first_name",
+  "middle_name",
+  "surname",
+  "email",
+  "mobile",
+  "organization_name",
+  "school_name",
+  "company_organization",
+  "parish_name",
+] as const;
+
+function quoteOrFilterValue(value: string) {
+  const escaped = value.replace(/\\/g, "\\\\").replace(/"/g, '\\"');
+  return `"%${escaped}%"`;
+}
+
+function filterMockSubmissions(params: ListSubmissionsPageParams): Submission[] {
+  const normalizedQuery = (params.query ?? "").trim().toLowerCase();
+
+  return mockSubmissions.filter((submission) => {
+    const searchableText = [
+      submission.id,
+      submission.firstName,
+      submission.middleName,
+      submission.surname,
+      submission.email,
+      submission.mobile,
+      getSubmissionOrganization(submission),
+    ]
+      .join(" ")
+      .toLowerCase();
+
+    const matchesQuery = normalizedQuery.length === 0 || searchableText.includes(normalizedQuery);
+    const matchesAffiliation =
+      !params.affiliation || params.affiliation === "all" || submission.affiliationType === params.affiliation;
+    const matchesPayment =
+      !params.paymentMode || params.paymentMode === "all" || submission.paymentMode === params.paymentMode;
+
+    return matchesQuery && matchesAffiliation && matchesPayment;
+  });
+}
+
+export async function listSubmissionsPage(
+  params: ListSubmissionsPageParams = {},
+): Promise<ListSubmissionsPageResult> {
+  const page = Math.max(1, params.page ?? 1);
+  const pageSize = Math.min(Math.max(params.pageSize ?? 25, 1), 100);
+  const sortKey = params.sortKey ?? "submitted";
+  const sortDir = params.sortDir ?? "desc";
+
+  const cookieStore = await cookies();
+  const supabase = createClient(cookieStore);
+
+  if (!supabase) {
+    const filtered = filterMockSubmissions(params);
+    const from = (page - 1) * pageSize;
+    return {
+      submissions: filtered.slice(from, from + pageSize),
+      total: filtered.length,
+      page,
+      pageSize,
+    };
+  }
+
+  let queryBuilder = supabase.from("submissions").select("*", { count: "exact" });
+
+  if (params.affiliation && params.affiliation !== "all") {
+    queryBuilder = queryBuilder.eq("affiliation_type", params.affiliation);
+  }
+
+  if (params.paymentMode && params.paymentMode !== "all") {
+    queryBuilder = queryBuilder.eq("payment_mode", params.paymentMode);
+  }
+
+  const trimmedQuery = (params.query ?? "").trim();
+  if (trimmedQuery.length > 0) {
+    const quoted = quoteOrFilterValue(trimmedQuery);
+    queryBuilder = queryBuilder.or(SEARCH_COLUMNS.map((column) => `${column}.ilike.${quoted}`).join(","));
+  }
+
+  const from = (page - 1) * pageSize;
+  const to = from + pageSize - 1;
+
+  const { data, error, count } = await queryBuilder
+    .order(SORT_COLUMNS[sortKey], { ascending: sortDir === "asc" })
+    .range(from, to);
+
+  if (error) {
+    throw new Error(error.message);
+  }
+
+  return {
+    submissions: (data ?? []).map((row) => mapRowToSubmission(row as SubmissionRow)),
+    total: count ?? 0,
+    page,
+    pageSize,
+  };
+}
+
+export type SubmissionStats = {
+  total: number;
+  verified: number;
+  pending: number;
+  accommodationRequests: number;
+};
+
+export async function getSubmissionStats(): Promise<SubmissionStats> {
+  const cookieStore = await cookies();
+  const supabase = createClient(cookieStore);
+
+  if (!supabase) {
+    return {
+      total: mockSubmissions.length,
+      verified: mockSubmissions.filter((s) => s.status === "Verified").length,
+      pending: mockSubmissions.filter((s) => s.status === "Pending").length,
+      accommodationRequests: mockSubmissions.filter((s) => s.accommodation === "avail").length,
+    };
+  }
+
+  const [totalRes, verifiedRes, pendingRes, accommodationRes] = await Promise.all([
+    supabase.from("submissions").select("*", { count: "exact", head: true }),
+    supabase.from("submissions").select("*", { count: "exact", head: true }).eq("status", "Verified"),
+    supabase.from("submissions").select("*", { count: "exact", head: true }).eq("status", "Pending"),
+    supabase.from("submissions").select("*", { count: "exact", head: true }).eq("accommodation", "avail"),
+  ]);
+
+  for (const res of [totalRes, verifiedRes, pendingRes, accommodationRes]) {
+    if (res.error) {
+      throw new Error(res.error.message);
+    }
+  }
+
+  return {
+    total: totalRes.count ?? 0,
+    verified: verifiedRes.count ?? 0,
+    pending: pendingRes.count ?? 0,
+    accommodationRequests: accommodationRes.count ?? 0,
+  };
+}
+
 export async function getSubmissionById(id: string) {
   const cookieStore = await cookies();
   const supabase = createClient(cookieStore);

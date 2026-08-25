@@ -1,7 +1,8 @@
 "use client";
 
-import { useMemo, useState } from "react";
+import { useRef, useState } from "react";
 import Link from "next/link";
+import { usePathname, useRouter } from "next/navigation";
 
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -14,11 +15,24 @@ import {
   getSubmissionOrganization,
   type Submission,
 } from "@/lib/admin-submissions";
+import type { SubmissionSortKey, SubmissionStats } from "@/lib/submissions.server";
 
 type FilterValue = "all" | Submission["affiliationType"];
 type PaymentFilterValue = "all" | Submission["paymentMode"];
-type SortKey = "name" | "affiliation" | "organization" | "payment" | "status" | "submitted";
 type SortDir = "asc" | "desc";
+
+type AdminDashboardProps = {
+  submissions: Submission[];
+  stats: SubmissionStats;
+  total: number;
+  page: number;
+  pageSize: number;
+  query: string;
+  affiliation: FilterValue;
+  paymentMode: PaymentFilterValue;
+  sortKey: SubmissionSortKey;
+  sortDir: SortDir;
+};
 
 function StatCard({ label, value, hint }: { label: string; value: string; hint: string }) {
   return (
@@ -49,10 +63,10 @@ function SortableHeader({
   onSort,
 }: {
   label: string;
-  sortKey: SortKey;
-  active: SortKey;
+  sortKey: SubmissionSortKey;
+  active: SubmissionSortKey;
   dir: SortDir;
-  onSort: (key: SortKey) => void;
+  onSort: (key: SubmissionSortKey) => void;
 }) {
   const isActive = active === sortKey;
   return (
@@ -70,93 +84,87 @@ function SortableHeader({
   );
 }
 
-const STATUS_ORDER: Record<Submission["status"], number> = { Verified: 0, "Needs review": 1, Pending: 2 };
+export default function AdminDashboard({
+  submissions,
+  stats,
+  total,
+  page,
+  pageSize,
+  query,
+  affiliation,
+  paymentMode,
+  sortKey,
+  sortDir,
+}: AdminDashboardProps) {
+  const router = useRouter();
+  const pathname = usePathname();
+  const [queryInput, setQueryInput] = useState(query);
+  const [syncedQuery, setSyncedQuery] = useState(query);
+  const debounceRef = useRef<ReturnType<typeof setTimeout> | null>(null);
 
-export default function AdminDashboard({ submissions }: { submissions: Submission[] }) {
-  const [query, setQuery] = useState("");
-  const [affiliation, setAffiliation] = useState<FilterValue>("all");
-  const [paymentMode, setPaymentMode] = useState<PaymentFilterValue>("all");
-  const [sortKey, setSortKey] = useState<SortKey>("submitted");
-  const [sortDir, setSortDir] = useState<SortDir>("desc");
+  if (query !== syncedQuery) {
+    setSyncedQuery(query);
+    setQueryInput(query);
+  }
 
-  function handleSort(key: SortKey) {
+  function navigate(overrides: {
+    q?: string;
+    affiliation?: FilterValue;
+    payment?: PaymentFilterValue;
+    sort?: SubmissionSortKey;
+    dir?: SortDir;
+    page?: number;
+  }) {
+    const params = new URLSearchParams();
+    const nextQuery = overrides.q ?? query;
+    const nextAffiliation = overrides.affiliation ?? affiliation;
+    const nextPayment = overrides.payment ?? paymentMode;
+    const nextSort = overrides.sort ?? sortKey;
+    const nextDir = overrides.dir ?? sortDir;
+    const nextPage = overrides.page ?? page;
+
+    if (nextQuery.trim().length > 0) params.set("q", nextQuery.trim());
+    if (nextAffiliation !== "all") params.set("affiliation", nextAffiliation);
+    if (nextPayment !== "all") params.set("payment", nextPayment);
+    if (nextSort !== "submitted") params.set("sort", nextSort);
+    if (nextDir !== "desc") params.set("dir", nextDir);
+    if (nextPage !== 1) params.set("page", String(nextPage));
+
+    const queryString = params.toString();
+    router.push(queryString.length > 0 ? `${pathname}?${queryString}` : pathname);
+  }
+
+  function handleQueryChange(value: string) {
+    setQueryInput(value);
+    if (debounceRef.current) {
+      clearTimeout(debounceRef.current);
+    }
+    debounceRef.current = setTimeout(() => {
+      navigate({ q: value, page: 1 });
+    }, 400);
+  }
+
+  function handleSort(key: SubmissionSortKey) {
     if (key === sortKey) {
-      setSortDir((d) => (d === "asc" ? "desc" : "asc"));
+      navigate({ sort: key, dir: sortDir === "asc" ? "desc" : "asc", page: 1 });
     } else {
-      setSortKey(key);
-      setSortDir("asc");
+      navigate({ sort: key, dir: "asc", page: 1 });
     }
   }
 
-  const filteredSubmissions = useMemo(() => {
-    const normalizedQuery = query.trim().toLowerCase();
-
-    const filtered = submissions.filter((submission) => {
-      const searchableText = [
-        submission.id,
-        getSubmissionDisplayName(submission),
-        submission.email,
-        submission.mobile,
-        getSubmissionOrganization(submission),
-        submission.day1Session,
-        submission.day2Session,
-      ]
-        .join(" ")
-        .toLowerCase();
-
-      const matchesQuery = normalizedQuery.length === 0 || searchableText.includes(normalizedQuery);
-      const matchesAffiliation = affiliation === "all" || submission.affiliationType === affiliation;
-      const matchesPayment = paymentMode === "all" || submission.paymentMode === paymentMode;
-
-      return matchesQuery && matchesAffiliation && matchesPayment;
-    });
-
-    filtered.sort((a, b) => {
-      let cmp = 0;
-      switch (sortKey) {
-        case "name":
-          cmp = `${a.surname} ${a.firstName}`.localeCompare(`${b.surname} ${b.firstName}`);
-          break;
-        case "affiliation":
-          cmp = a.affiliationType.localeCompare(b.affiliationType);
-          break;
-        case "organization":
-          cmp = getSubmissionOrganization(a).localeCompare(getSubmissionOrganization(b));
-          break;
-        case "payment":
-          cmp = a.paymentMode.localeCompare(b.paymentMode);
-          break;
-        case "status":
-          cmp = STATUS_ORDER[a.status] - STATUS_ORDER[b.status];
-          break;
-        case "submitted":
-          cmp = a.submittedAt.localeCompare(b.submittedAt);
-          break;
-      }
-      return sortDir === "asc" ? cmp : -cmp;
-    });
-
-    return filtered;
-  }, [affiliation, paymentMode, query, sortDir, sortKey, submissions]);
-
-  const summary = useMemo(() => {
-    const total = submissions.length;
-    const verified = submissions.filter((submission) => submission.status === "Verified").length;
-    const pending = submissions.filter((submission) => submission.status === "Pending").length;
-    const accommodationRequests = submissions.filter((submission) => submission.accommodation === "avail").length;
-
-    return { total, verified, pending, accommodationRequests };
-  }, [submissions]);
+  const totalPages = Math.max(1, Math.ceil(total / pageSize));
+  const rangeStart = total === 0 ? 0 : (page - 1) * pageSize + 1;
+  const rangeEnd = Math.min(total, page * pageSize);
 
   return (
     <div className="space-y-8">
       <section className="grid gap-4 md:grid-cols-4">
-        <StatCard label="Total submissions" value={String(summary.total)} hint="All records currently in the dashboard" />
-        <StatCard label="Verified" value={String(summary.verified)} hint="Payments or records already cleared" />
-        <StatCard label="Pending" value={String(summary.pending)} hint="Awaiting review or confirmation" />
+        <StatCard label="Total submissions" value={String(stats.total)} hint="All records currently in the dashboard" />
+        <StatCard label="Verified" value={String(stats.verified)} hint="Payments or records already cleared" />
+        <StatCard label="Pending" value={String(stats.pending)} hint="Awaiting review or confirmation" />
         <StatCard
           label="Accommodation requests"
-          value={String(summary.accommodationRequests)}
+          value={String(stats.accommodationRequests)}
           hint="Participants requesting the free accommodation"
         />
       </section>
@@ -180,14 +188,14 @@ export default function AdminDashboard({ submissions }: { submissions: Submissio
 
         <div className="mt-6 grid gap-3 lg:grid-cols-[1.4fr_0.8fr_0.8fr]">
           <Input
-            placeholder="Search by name, email, organization, or submission ID"
-            value={query}
-            onChange={(event) => setQuery(event.target.value)}
+            placeholder="Search by name, email, or organization"
+            value={queryInput}
+            onChange={(event) => handleQueryChange(event.target.value)}
           />
           <select
             className="h-10 rounded-md border border-input bg-background px-3 text-sm ring-offset-background transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2"
             value={affiliation}
-            onChange={(event) => setAffiliation(event.target.value as FilterValue)}
+            onChange={(event) => navigate({ affiliation: event.target.value as FilterValue, page: 1 })}
           >
             <option value="all">All affiliations</option>
             <option value="parish">Parish</option>
@@ -197,7 +205,7 @@ export default function AdminDashboard({ submissions }: { submissions: Submissio
           <select
             className="h-10 rounded-md border border-input bg-background px-3 text-sm ring-offset-background transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2"
             value={paymentMode}
-            onChange={(event) => setPaymentMode(event.target.value as PaymentFilterValue)}
+            onChange={(event) => navigate({ payment: event.target.value as PaymentFilterValue, page: 1 })}
           >
             <option value="all">All payment modes</option>
             <option value="GCash">GCash</option>
@@ -220,8 +228,8 @@ export default function AdminDashboard({ submissions }: { submissions: Submissio
                 </tr>
               </thead>
               <tbody className="divide-y divide-slate-200 bg-white">
-                {filteredSubmissions.length > 0 ? (
-                  filteredSubmissions.map((submission) => (
+                {submissions.length > 0 ? (
+                  submissions.map((submission) => (
                     <tr key={submission.id} className="align-top">
                       <td className="px-4 py-4">
                         <div className="font-semibold text-[#1a2e5a]">{getSubmissionDisplayName(submission)}</div>
@@ -256,6 +264,33 @@ export default function AdminDashboard({ submissions }: { submissions: Submissio
                 )}
               </tbody>
             </table>
+          </div>
+        </div>
+
+        <div className="mt-4 flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
+          <p className="text-sm text-slate-500">
+            {total === 0 ? "No results" : `Showing ${rangeStart}–${rangeEnd} of ${total}`}
+          </p>
+          <div className="flex items-center gap-2">
+            <Button
+              variant="outline"
+              size="sm"
+              disabled={page <= 1}
+              onClick={() => navigate({ page: page - 1 })}
+            >
+              Previous
+            </Button>
+            <span className="text-sm text-slate-600">
+              Page {page} of {totalPages}
+            </span>
+            <Button
+              variant="outline"
+              size="sm"
+              disabled={page >= totalPages}
+              onClick={() => navigate({ page: page + 1 })}
+            >
+              Next
+            </Button>
           </div>
         </div>
       </section>
