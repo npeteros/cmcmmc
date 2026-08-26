@@ -9,14 +9,14 @@ import {
   siteDescription,
   siteName,
   siteUrl,
-} from '../lib/seo'
-import HeroSection from '../components/HeroSection'
-import AboutSection from '../components/AboutSection'
-import SpeakersSection from '../components/SpeakersSection'
-import BreakoutSection from '../components/BreakoutSection'
-import FirstCongress from '../components/FirstCongress'
-import CTASection from '../components/CTASection'
-import Footer from '../components/Footer'
+} from '@/lib/seo'
+import HeroSection from '@/components/HeroSection'
+import AboutSection from '@/components/AboutSection'
+import SpeakersSection from '@/components/SpeakersSection'
+import BreakoutSection from '@/components/BreakoutSection'
+import FirstCongress from '@/components/FirstCongress'
+import CTASection from '@/components/CTASection'
+import Footer from '@/components/Footer'
 
 export const metadata: Metadata = {
   title: "Home",

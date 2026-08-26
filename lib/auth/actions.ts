@@ -2,11 +2,7 @@
 
 import { redirect } from "next/navigation";
 
-import {
-  areAdminCredentialsValid,
-  clearAdminSession,
-  setAdminSession,
-} from "@/lib/admin-auth";
+import { clearSession, resolveCredentialRole, setSession } from "@/lib/auth/session";
 
 export type LoginState = {
   error?: string;
@@ -19,17 +15,19 @@ export async function loginAction(
   const username = String(formData.get("username") ?? "").trim();
   const password = String(formData.get("password") ?? "").trim();
 
-  if (!areAdminCredentialsValid(username, password)) {
+  const role = resolveCredentialRole(username, password);
+
+  if (!role) {
     return {
       error: "Invalid username or password.",
     };
   }
 
-  await setAdminSession();
-  redirect("/admin");
+  await setSession(role);
+  redirect(role === "admin" ? "/admin" : "/attendance");
 }
 
 export async function logoutAction() {
-  await clearAdminSession();
+  await clearSession();
   redirect("/login");
 }

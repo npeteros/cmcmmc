@@ -1,18 +1,24 @@
 import type { Metadata } from "next";
 import { redirect } from "next/navigation";
 
-import { isAdminSessionActive } from "@/lib/admin-auth";
+import { getSessionRole } from "@/lib/auth/session";
 
 import LoginForm from "./LoginForm";
 
 export const metadata: Metadata = {
-  title: "Admin Login",
-  description: "Sign in to access the CM-CMMC admin dashboard.",
+  title: "Login",
+  description: "Sign in to access the CM-CMMC staff or admin tools.",
 };
 
 export default async function LoginPage() {
-  if (await isAdminSessionActive()) {
+  const role = await getSessionRole();
+
+  if (role === "admin") {
     redirect("/admin");
+  }
+
+  if (role === "staff") {
+    redirect("/attendance");
   }
 
   return (
@@ -22,14 +28,14 @@ export default async function LoginPage() {
           <section className="flex flex-col justify-between gap-8 bg-[#1a2e5a] px-8 py-10 text-white md:px-10">
             <div>
               <p className="text-xs font-semibold uppercase tracking-[0.35em] text-[#7fd9de]">
-                Admin access
+                Staff &amp; admin access
               </p>
               <h1 className="mt-4 text-3xl font-semibold leading-tight md:text-4xl">
-                CM-CMMC submission dashboard
+                CM-CMMC event tools
               </h1>
               <p className="mt-4 max-w-md text-sm leading-6 text-white/75">
-                Review incoming registrations, inspect uploaded files, and
-                export records from one protected place.
+                Staff sign in for the check-in scanner. Admins sign in for the
+                full submission dashboard and everything staff can do.
               </p>
             </div>
           </section>
@@ -43,7 +49,7 @@ export default async function LoginPage() {
                 Sign in to continue
               </h2>
               <p className="mt-2 text-sm text-slate-600">
-                Use the shared administrator credentials to open the dashboard.
+                Use your staff or admin credentials to continue.
               </p>
 
               <div className="mt-8">

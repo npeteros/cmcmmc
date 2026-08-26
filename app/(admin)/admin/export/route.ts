@@ -1,6 +1,6 @@
 import { NextResponse } from "next/server";
 
-import { isAdminSessionActive } from "@/lib/admin-auth";
+import { isAdminSessionActive } from "@/lib/auth/session";
 import { createSubmissionCsv } from "@/lib/submissions.server";
 import { listSubmissions } from "@/lib/submissions.server";
 

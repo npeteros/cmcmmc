@@ -1,6 +1,6 @@
 import { NextResponse } from "next/server";
 
-import { isAdminSessionActive } from "@/lib/admin-auth";
+import { isStaffSessionActive } from "@/lib/auth/session";
 import { getSubmissionById } from "@/lib/submissions.server";
 
 type RouteContext = {
@@ -8,7 +8,7 @@ type RouteContext = {
 };
 
 export async function GET(_request: Request, { params }: RouteContext) {
-  if (!(await isAdminSessionActive())) {
+  if (!(await isStaffSessionActive())) {
     return NextResponse.json({ ok: false, error: "Unauthorized." }, { status: 401 });
   }
 

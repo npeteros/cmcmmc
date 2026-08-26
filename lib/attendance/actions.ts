@@ -2,7 +2,7 @@
 
 import { revalidatePath } from "next/cache";
 
-import { requireAdminSession } from "@/lib/admin-auth";
+import { requireStaffSession } from "@/lib/auth/session";
 import {
   clearSubmissionArrival,
   markSubmissionArrival,
@@ -60,7 +60,7 @@ export async function markArrivalAction(
   _previousState: MarkArrivalState,
   formData: FormData,
 ): Promise<MarkArrivalState> {
-  await requireAdminSession();
+  await requireStaffSession();
 
   const id = String(formData.get("id") ?? "").trim();
   const modeRaw = String(formData.get("mode") ?? "").trim();
@@ -110,7 +110,7 @@ export async function revertArrivalAction(
   _previousState: MarkArrivalState,
   formData: FormData,
 ): Promise<MarkArrivalState> {
-  await requireAdminSession();
+  await requireStaffSession();
 
   const id = String(formData.get("id") ?? "").trim();
   const modeRaw = String(formData.get("mode") ?? "").trim();
@@ -149,7 +149,7 @@ export async function markKitReceivedAction(
   _previousState: MarkKitReceivedState,
   formData: FormData,
 ): Promise<MarkKitReceivedState> {
-  await requireAdminSession();
+  await requireStaffSession();
 
   const id = String(formData.get("id") ?? "").trim();
   const received = formData.get("received") === "true";

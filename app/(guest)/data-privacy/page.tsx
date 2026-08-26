@@ -1,5 +1,5 @@
 import type { Metadata } from "next";
-import { siteName } from "../../lib/seo";
+import { siteName } from "@/lib/seo";
 
 export const metadata: Metadata = {
   title: "Data Privacy",

@@ -3,7 +3,7 @@
 import { revalidatePath } from "next/cache";
 import { redirect } from "next/navigation";
 
-import { isAdminSessionActive } from "@/lib/admin-auth";
+import { isAdminSessionActive } from "@/lib/auth/session";
 import {
   SUBMISSION_STATUSES,
   type SubmissionStatus,

@@ -1,6 +1,6 @@
 import { notFound, redirect } from "next/navigation";
 
-import { isAdminSessionActive } from "@/lib/admin-auth";
+import { isStaffSessionActive } from "@/lib/auth/session";
 import { getSubmissionById } from "@/lib/submissions.server";
 import { toGuestView } from "@/lib/guest-submission-view";
 import GuestRegistrationView from "./GuestRegistrationView";
@@ -12,7 +12,7 @@ type CheckinPageProps = {
 export default async function CheckinPage({ params }: CheckinPageProps) {
   const { id } = await params;
 
-  if (await isAdminSessionActive()) {
+  if (await isStaffSessionActive()) {
     redirect(`/attendance?id=${encodeURIComponent(id)}`);
   }
 
