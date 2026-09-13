@@ -5,8 +5,10 @@ import { revalidatePath } from "next/cache";
 import { requireStaffSession } from "@/lib/auth/session";
 import {
   clearSubmissionArrival,
+  KitReceivedBlockedError,
   markSubmissionArrival,
   setKitReceived,
+  setShirtPaymentReceived,
   type AttendanceMode,
 } from "@/lib/submissions.server";
 import type { Submission } from "@/lib/admin-submissions";
@@ -21,6 +23,14 @@ export type MarkArrivalState = {
 };
 
 export type MarkKitReceivedState = {
+  status: "idle" | "success" | "error";
+  message?: string;
+  oldData?: boolean;
+  newData?: Submission;
+  id?: string;
+};
+
+export type MarkShirtPaymentReceivedState = {
   status: "idle" | "success" | "error";
   message?: string;
   oldData?: boolean;
@@ -162,7 +172,10 @@ export async function markKitReceivedAction(
 
   try {
     result = await setKitReceived(id, received);
-  } catch {
+  } catch (error) {
+    if (error instanceof KitReceivedBlockedError) {
+      return { status: "error", message: error.message, id };
+    }
     return { status: "error", message: "Failed to update kit status. Please try again.", id };
   }
 
@@ -176,6 +189,43 @@ export async function markKitReceivedAction(
   return {
     status: "success",
     message: received ? "Kit marked as received." : "Kit marked as not received.",
+    oldData: result.oldData,
+    newData: result.newData,
+    id,
+  };
+}
+
+export async function markShirtPaymentReceivedAction(
+  _previousState: MarkShirtPaymentReceivedState,
+  formData: FormData,
+): Promise<MarkShirtPaymentReceivedState> {
+  await requireStaffSession();
+
+  const id = String(formData.get("id") ?? "").trim();
+  const received = formData.get("received") === "true";
+
+  if (!id) {
+    return { status: "error", message: "Invalid shirt payment payload." };
+  }
+
+  let result;
+
+  try {
+    result = await setShirtPaymentReceived(id, received);
+  } catch {
+    return { status: "error", message: "Failed to update shirt payment status. Please try again.", id };
+  }
+
+  if (!result) {
+    return { status: "error", message: "Registrant not found.", id };
+  }
+
+  revalidatePath("/attendance");
+  // SAFE: no pathMappings registry exists in this codebase; oldData/newData preserved
+  // instead, revalidatePath used as the closest existing "what to refresh" mechanism.
+  return {
+    status: "success",
+    message: received ? "Shirt payment marked as received." : "Shirt payment marked as not received.",
     oldData: result.oldData,
     newData: result.newData,
     id,

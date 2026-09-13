@@ -9,7 +9,13 @@ import {
   type SubmissionStatus,
   getSubmissionDisplayName,
 } from "@/lib/admin-submissions";
-import { deleteSubmission, updateSubmissionStatus, uploadInvoice } from "@/lib/submissions.server";
+import {
+  deleteSubmission,
+  updateSubmissionDetails,
+  updateSubmissionStatus,
+  uploadInvoice,
+  type RegistrationSubmissionInput,
+} from "@/lib/submissions.server";
 import { sendParticipationConfirmationEmail } from "@/lib/mail-service";
 
 export type UpdateSubmissionStatusState = {
@@ -129,4 +135,127 @@ export async function deleteSubmissionAction(
   revalidatePath("/admin");
 
   return { status: "success" };
+}
+
+export type UpdateSubmissionDetailsState = {
+  status: "idle" | "success" | "error";
+  message?: string;
+};
+
+const AFFILIATION_TYPES = ["parish", "school", "neither"] as const;
+const ACCOMMODATIONS = ["avail", "self"] as const;
+const PAYMENT_MODES = ["GCash", "BDO"] as const;
+
+function isAffiliationType(
+  value: string,
+): value is RegistrationSubmissionInput["affiliationType"] {
+  return (AFFILIATION_TYPES as readonly string[]).includes(value);
+}
+
+function isAccommodation(
+  value: string,
+): value is RegistrationSubmissionInput["accommodation"] {
+  return (ACCOMMODATIONS as readonly string[]).includes(value);
+}
+
+function isPaymentMode(
+  value: string,
+): value is RegistrationSubmissionInput["paymentMode"] {
+  return (PAYMENT_MODES as readonly string[]).includes(value);
+}
+
+function getString(formData: FormData, key: string) {
+  return String(formData.get(key) ?? "").trim();
+}
+
+export async function updateSubmissionDetailsAction(
+  _previousState: UpdateSubmissionDetailsState,
+  formData: FormData,
+): Promise<UpdateSubmissionDetailsState> {
+  if (!(await isAdminSessionActive())) {
+    redirect("/login");
+  }
+
+  const id = getString(formData, "id");
+  const affiliationType = getString(formData, "affiliationType");
+  const accommodation = getString(formData, "accommodation");
+  const paymentMode = getString(formData, "paymentMode");
+
+  if (!id) {
+    return { status: "error", message: "Missing submission ID." };
+  }
+
+  if (!isAffiliationType(affiliationType)) {
+    return { status: "error", message: "Invalid affiliation type." };
+  }
+
+  if (!isAccommodation(accommodation)) {
+    return { status: "error", message: "Invalid accommodation option." };
+  }
+
+  if (!isPaymentMode(paymentMode)) {
+    return { status: "error", message: "Invalid payment mode." };
+  }
+
+  const firstName = getString(formData, "firstName");
+  const surname = getString(formData, "surname");
+  const email = getString(formData, "email");
+  const mobile = getString(formData, "mobile");
+  const shirtSize = getString(formData, "shirtSize");
+  const day1Session = getString(formData, "day1Session");
+  const day2Session = getString(formData, "day2Session");
+
+  if (!firstName || !surname || !email || !mobile || !shirtSize || !day1Session || !day2Session) {
+    return { status: "error", message: "Please fill in all required fields." };
+  }
+
+  const input: RegistrationSubmissionInput = {
+    affiliationType,
+    archdiocese: getString(formData, "archdiocese"),
+    archdioceseOther: getString(formData, "archdioceseOther"),
+    parishName: getString(formData, "parishName"),
+    parishAddress: getString(formData, "parishAddress"),
+    organizationName: getString(formData, "organizationName"),
+    roleInMinistry: getString(formData, "roleInMinistry"),
+    roleInMinistryOther: getString(formData, "roleInMinistryOther"),
+    province: getString(formData, "province"),
+    schoolName: getString(formData, "schoolName"),
+    schoolAddress: getString(formData, "schoolAddress"),
+    designation: getString(formData, "designation"),
+    designationOther: getString(formData, "designationOther"),
+    companyOrganization: getString(formData, "companyOrganization"),
+    companyAddress: getString(formData, "companyAddress"),
+    positionDesignation: getString(formData, "positionDesignation"),
+    title: getString(formData, "title"),
+    firstName,
+    middleName: getString(formData, "middleName"),
+    surname,
+    congregation: getString(formData, "congregation"),
+    email,
+    mobile,
+    completeAddress: getString(formData, "completeAddress"),
+    shirtSize,
+    day1Session,
+    day2Session,
+    accommodation,
+    paymentMode,
+    transactionNumber: getString(formData, "transactionNumber"),
+  };
+
+  let updated;
+
+  try {
+    updated = await updateSubmissionDetails(id, input);
+  } catch {
+    return { status: "error", message: "Failed to update submission. Please try again." };
+  }
+
+  if (!updated) {
+    return { status: "error", message: "Submission not found." };
+  }
+
+  revalidatePath("/admin");
+  revalidatePath(`/admin/submissions/${id}`);
+
+  return { status: "success", message: "Submission details updated." };
 }

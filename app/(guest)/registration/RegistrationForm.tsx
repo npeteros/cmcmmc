@@ -26,7 +26,17 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 import { SPEAKERS } from "@/lib/speakers";
-import { day1Options, day2Options } from "@/lib/registration-options";
+import {
+  affiliationOptions,
+  day1Options,
+  day2Options,
+  designationOptions,
+  getShirtSizeAdditionalFee,
+  ministryOptions,
+  parishOptions,
+  shirtSizes,
+  titleOptions,
+} from "@/lib/registration-options";
 import Image from "next/image";
 import { toast } from "sonner";
 import {
@@ -47,86 +57,6 @@ const ACCEPTED_FILE_TYPES = [
   "image/webp",
   "application/pdf",
 ];
-
-const affiliationOptions = [
-  {
-    value: "parish",
-    label: "joining as a representative of a parish",
-  },
-  {
-    value: "school",
-    label: "joining as a representative of a school",
-  },
-  {
-    value: "neither",
-    label: "neither affiliated to a parish or a school",
-  },
-] as const;
-
-const ministryOptions = [
-  "Spiritual Director",
-  "Writer",
-  "Photographer",
-  "Videographer",
-  "Technical Staff",
-  "Graphic Artist",
-  "Others",
-] as const;
-
-const designationOptions = [
-  "Teacher/Adviser",
-  "Writer",
-  "Photographer",
-  "Videographer",
-  "Technical Staff",
-  "Graphic Artist",
-  "Others",
-] as const;
-
-const parishOptions = [
-  "Archdiocese of Cebu",
-  "Diocese of Dumaguete",
-  "Diocese of Tagbilaran",
-  "Diocese of Talibon",
-  "Diocese of Maasin",
-  "Others",
-];
-
-const titleOptions = [
-  "Rev. Fr.",
-  "Rev.",
-  "Sr.",
-  "Bro.",
-  "Mr.",
-  "Ms.",
-  "Mrs.",
-] as const;
-
-const shirtSizes = [
-  "XS",
-  "S",
-  "M",
-  "L",
-  "XL",
-  "2XL",
-  "3XL",
-  "4XL",
-  "5XL",
-  "6XL",
-] as const;
-
-const shirtSizeAdditionalFees = {
-  XS: 0,
-  S: 0,
-  M: 0,
-  L: 0,
-  XL: 0,
-  "2XL": 0,
-  "3XL": 10,
-  "4XL": 20,
-  "5XL": 30,
-  "6XL": 40,
-};
 
 const day1WithImages = day1Options.map((option) => ({
   ...option,
@@ -1410,14 +1340,12 @@ export default function RegistrationForm() {
                             </SelectContent>
                           </Select>
                           {field.value &&
-                            ["3XL", "4XL", "5XL", "6XL"].includes(
-                              field.value,
-                            ) && (
+                            getShirtSizeAdditionalFee(field.value) > 0 && (
                               <p className="mt-1 text-xs text-blue-400 flex items-center gap-1">
                                 <Info size={12} /> An additional fee applies for
                                 size {field.value}. Please prepare an additional
                                 payment of Php{" "}
-                                {shirtSizeAdditionalFees[field.value]}.
+                                {getShirtSizeAdditionalFee(field.value)}.
                               </p>
                             )}
                           <FormMessage />

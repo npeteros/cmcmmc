@@ -47,6 +47,7 @@ export type Submission = {
   dayOneBreakoutAttendance: string | null;
   dayTwoBreakoutAttendance: string | null;
   kitReceived: boolean;
+  shirtPaymentReceived: boolean;
 };
 
 export const mockSubmissions: Submission[] = [
@@ -93,6 +94,7 @@ export const mockSubmissions: Submission[] = [
     dayOneBreakoutAttendance: null,
     dayTwoBreakoutAttendance: null,
     kitReceived: false,
+    shirtPaymentReceived: false,
   },
   {
     id: "CMC-002",
@@ -137,6 +139,7 @@ export const mockSubmissions: Submission[] = [
     dayOneBreakoutAttendance: null,
     dayTwoBreakoutAttendance: null,
     kitReceived: false,
+    shirtPaymentReceived: false,
   },
   {
     id: "CMC-003",
@@ -181,6 +184,7 @@ export const mockSubmissions: Submission[] = [
     dayOneBreakoutAttendance: null,
     dayTwoBreakoutAttendance: null,
     kitReceived: false,
+    shirtPaymentReceived: false,
   },
 ];
 

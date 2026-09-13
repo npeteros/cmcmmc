@@ -63,6 +63,7 @@ type SubmissionRow = {
   day_one_breakout_attendance: string | null;
   day_two_breakout_attendance: string | null;
   kit_received: boolean;
+  shirt_payment_received: boolean;
 };
 
 export type RegistrationSubmissionInput = {
@@ -144,6 +145,7 @@ function mapRowToSubmission(row: SubmissionRow): Submission {
     dayOneBreakoutAttendance: row.day_one_breakout_attendance ?? null,
     dayTwoBreakoutAttendance: row.day_two_breakout_attendance ?? null,
     kitReceived: row.kit_received ?? false,
+    shirtPaymentReceived: row.shirt_payment_received ?? false,
   };
 }
 
@@ -705,6 +707,71 @@ export async function createRegistrationSubmission(
   return mapRowToSubmission(data as SubmissionRow);
 }
 
+export async function updateSubmissionDetails(
+  id: string,
+  input: RegistrationSubmissionInput,
+): Promise<Submission | null> {
+  const cookieStore = await cookies();
+  const supabase = createClient(cookieStore);
+
+  const row = {
+    affiliation_type: input.affiliationType,
+    title: input.title,
+    first_name: input.firstName,
+    middle_name: input.middleName,
+    surname: input.surname,
+    congregation: input.congregation,
+    email: input.email,
+    mobile: input.mobile,
+    complete_address: input.completeAddress,
+    shirt_size: input.shirtSize,
+    organization_name: input.organizationName,
+    archdiocese: input.archdiocese,
+    archdiocese_other: input.archdioceseOther,
+    parish_name: input.parishName,
+    parish_address: input.parishAddress,
+    role_in_ministry: input.roleInMinistry,
+    role_in_ministry_other: input.roleInMinistryOther,
+    province: input.province,
+    school_name: input.schoolName,
+    school_address: input.schoolAddress,
+    designation: input.designation,
+    designation_other: input.designationOther,
+    company_organization: input.companyOrganization,
+    company_address: input.companyAddress,
+    position_designation: input.positionDesignation,
+    day1_session: input.day1Session,
+    day2_session: input.day2Session,
+    accommodation: input.accommodation,
+    payment_mode: input.paymentMode,
+    transaction_number: input.transactionNumber,
+  } satisfies Partial<SubmissionRow>;
+
+  if (!supabase) {
+    const submission = mockSubmissions.find((item) => item.id === id);
+
+    if (!submission) {
+      return null;
+    }
+
+    Object.assign(submission, input);
+    return submission;
+  }
+
+  const { data, error } = await supabase
+    .from("submissions")
+    .update(row)
+    .eq("id", id)
+    .select("*")
+    .maybeSingle();
+
+  if (error) {
+    throw new Error(error.message);
+  }
+
+  return data ? mapRowToSubmission(data as SubmissionRow) : null;
+}
+
 export async function deleteSubmission(id: string) {
   const cookieStore = await cookies();
   const supabase = createClient(cookieStore);
@@ -928,6 +995,8 @@ export type SetKitReceivedResult = {
   newData: Submission;
 };
 
+export class KitReceivedBlockedError extends Error {}
+
 export async function setKitReceived(
   id: string,
   received: boolean,
@@ -940,6 +1009,10 @@ export async function setKitReceived(
 
     if (!submission) {
       return null;
+    }
+
+    if (received && !submission.dayOneAttendance) {
+      throw new KitReceivedBlockedError("Cannot mark kit received before Day 1 check-in.");
     }
 
     const oldData = submission.kitReceived;
@@ -961,6 +1034,10 @@ export async function setKitReceived(
     return null;
   }
 
+  if (received && !(existing as SubmissionRow).day_one_attendance) {
+    throw new KitReceivedBlockedError("Cannot mark kit received before Day 1 check-in.");
+  }
+
   const oldData = (existing as SubmissionRow).kit_received ?? false;
 
   const { data, error } = await supabase
@@ -979,4 +1056,62 @@ export async function setKitReceived(
   }
 
   return { oldData, newData: mapRowToSubmission(data as SubmissionRow) };
+}
+
+export type SetShirtPaymentReceivedResult = {
+  oldData: boolean;
+  newData: Submission;
+};
+
+export async function setShirtPaymentReceived(
+  id: string,
+  received: boolean,
+): Promise<SetShirtPaymentReceivedResult | null> {
+  const cookieStore = await cookies();
+  const supabase = createClient(cookieStore);
+
+  if (!supabase) {
+    const submission = mockSubmissions.find((item) => item.id === id);
+
+    if (!submission) {
+      return null;
+    }
+
+    const oldData = submission.shirtPaymentReceived;
+    submission.shirtPaymentReceived = received;
+    return { oldData, newData: submission };
+  }
+
+  const { data: existing, error: existingError } = await supabase
+    .from("submissions")
+    .select("*")
+    .eq("id", id)
+    .maybeSingle();
+
+  if (existingError) {
+    throw new Error(existingError.message);
+  }
+
+  if (!existing) {
+    return null;
+  }
+
+  const oldData = (existing as SubmissionRow).shirt_payment_received ?? false;
+
+  const { data: updated, error: updateError } = await supabase
+    .from("submissions")
+    .update({ shirt_payment_received: received })
+    .eq("id", id)
+    .select("*")
+    .maybeSingle();
+
+  if (updateError) {
+    throw new Error(updateError.message);
+  }
+
+  if (!updated) {
+    return null;
+  }
+
+  return { oldData, newData: mapRowToSubmission(updated as SubmissionRow) };
 }
