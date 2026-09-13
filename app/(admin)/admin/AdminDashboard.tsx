@@ -7,7 +7,7 @@ import { usePathname, useRouter } from "next/navigation";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import DeleteSubmissionButton from "./DeleteSubmissionButton";
-import ShowQrCodeButton from "./ShowQrCodeButton";
+import CopyGuestLinkButton from "./CopyGuestLinkButton";
 import {
   formatSubmissionDate,
   getAffiliationLabel,
@@ -246,7 +246,7 @@ export default function AdminDashboard({
                           <Button asChild variant="ghost" size="sm">
                             <Link href={`/admin/submissions/${encodeURIComponent(submission.id)}`}>View</Link>
                           </Button>
-                          <ShowQrCodeButton
+                          <CopyGuestLinkButton
                             submissionId={submission.id}
                             displayName={getSubmissionDisplayName(submission)}
                           />
