@@ -2,6 +2,7 @@ import Link from "next/link";
 
 import { Button } from "@/components/ui/button";
 import { requireAdminSession } from "@/lib/auth/session";
+import AdminNav from "./AdminNav";
 
 import { logoutAction } from "@/lib/auth/actions";
 
@@ -19,12 +20,7 @@ export default async function AdminLayout({
           <div>
             <p className="text-xs font-semibold uppercase tracking-[0.3em] text-[#2aadb5]">CM-CMMC admin</p>
             <div className="mt-2 flex flex-wrap items-center gap-3">
-              <Link href="/admin" className="text-lg font-semibold text-[#1a2e5a]">
-                Submission dashboard
-              </Link>
-              <Link href="/admin/competition" className="text-lg font-semibold text-[#1a2e5a]">
-                Competition
-              </Link>
+              <AdminNav />
               <span className="rounded-full border border-emerald-200 bg-emerald-50 px-2.5 py-1 text-xs font-semibold text-emerald-700">
                 Signed in
               </span>
