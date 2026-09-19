@@ -1,0 +1,38 @@
+import type { Metadata } from "next";
+
+import { getVotingStatus, listCompetitionEntriesWithVotes } from "@/lib/competition.server";
+import VoteGallery from "./VoteGallery";
+
+export const metadata: Metadata = {
+  title: "Video Competition Voting",
+  description: "Vote for your favorite video competition entry.",
+};
+
+export default async function VotePage() {
+  const [entries, votingOpen] = await Promise.all([
+    listCompetitionEntriesWithVotes(),
+    getVotingStatus(),
+  ]);
+
+  return (
+    <main className="min-h-screen bg-[linear-gradient(180deg,#f4f8ff_0%,#eef4ff_45%,#f8fbff_100%)] px-4 py-14 sm:px-6 lg:px-8">
+      <div className="mx-auto w-full max-w-6xl">
+        <div className="mb-10 text-center">
+          <p className="text-xs font-semibold uppercase tracking-[0.3em] text-[#2aadb5]">Video Competition</p>
+          <h1 className="mt-3 text-3xl font-semibold text-[#1a2e5a] md:text-4xl">Cast your vote</h1>
+          <p className="mx-auto mt-3 max-w-2xl text-sm text-slate-600">
+            Watch each submission and vote for your favorite. You can vote once, and we&apos;ll email you a
+            code to confirm it&apos;s really you.
+          </p>
+          {!votingOpen && (
+            <p className="mx-auto mt-4 max-w-md rounded-xl border border-amber-200 bg-amber-50 px-4 py-3 text-sm font-semibold text-amber-700">
+              Voting is currently closed. Please check back later.
+            </p>
+          )}
+        </div>
+
+        <VoteGallery initialEntries={entries} votingOpen={votingOpen} />
+      </div>
+    </main>
+  );
+}

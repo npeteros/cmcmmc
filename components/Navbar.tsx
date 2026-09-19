@@ -16,6 +16,7 @@ const navLinks = [
   { label: "Speakers", href: "/#speakers" },
   { label: "Program", href: "/2nd-CM-CMMC-Program.pdf", external: true },
   { label: "Registration", href: "/registration" },
+  { label: "Vote", href: "/vote" },
   { label: "RCAC Website", href: "https://thearchdioceseofcebu.com/", external: true },
 ];
 

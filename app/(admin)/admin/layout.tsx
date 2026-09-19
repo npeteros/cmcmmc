@@ -22,6 +22,9 @@ export default async function AdminLayout({
               <Link href="/admin" className="text-lg font-semibold text-[#1a2e5a]">
                 Submission dashboard
               </Link>
+              <Link href="/admin/competition" className="text-lg font-semibold text-[#1a2e5a]">
+                Competition
+              </Link>
               <span className="rounded-full border border-emerald-200 bg-emerald-50 px-2.5 py-1 text-xs font-semibold text-emerald-700">
                 Signed in
               </span>
