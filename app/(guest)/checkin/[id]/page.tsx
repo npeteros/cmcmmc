@@ -1,6 +1,7 @@
 import { notFound, redirect } from "next/navigation";
 
 import { isStaffSessionActive } from "@/lib/auth/session";
+import { isEvaluationLaunched } from "@/lib/evaluation-launch";
 import { getEvaluationStatus } from "@/lib/evaluation.server";
 import { getSubmissionById } from "@/lib/submissions.server";
 import { toGuestView } from "@/lib/guest-submission-view";
@@ -30,7 +31,7 @@ export default async function CheckinPage({ params }: CheckinPageProps) {
     <GuestRegistrationView
       submission={toGuestView(submission)}
       evaluationHref={
-        evaluationStatus.isAcceptingResponses
+        isEvaluationLaunched() && evaluationStatus.isAcceptingResponses
           ? `/evaluation/${encodeURIComponent(submission.id)}`
           : undefined
       }

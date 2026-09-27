@@ -1,5 +1,6 @@
 "use client";
 
+import { useSyncExternalStore } from "react";
 import Link from "next/link";
 import Image from "next/image";
 import { usePathname } from "next/navigation";
@@ -17,6 +18,7 @@ import {
   DropdownMenuContent,
   DropdownMenuItem,
 } from "./ui/dropdown-menu";
+import { isEvaluationLaunched } from "@/lib/evaluation-launch";
 
 type NavLink = {
   label: string;
@@ -50,8 +52,16 @@ const navGroups: NavGroup[] = [
 
 const registrationLink: NavLink = { label: "Register", href: "/registration" };
 
+const noopSubscribe = () => () => {};
+
 export default function Navbar() {
   const pathname = usePathname();
+  // Server snapshot is false so prerendered pages don't show the link early.
+  const evaluationLaunched = useSyncExternalStore(noopSubscribe, isEvaluationLaunched, () => false);
+  const visibleNavGroups = navGroups.map((group) => ({
+    ...group,
+    links: group.links.filter((link) => link.href !== "/evaluation" || evaluationLaunched),
+  }));
 
   if (pathname.startsWith("/admin") || pathname === "/login") {
     return null;
@@ -67,7 +77,7 @@ export default function Navbar() {
 
         {/* Nav links */}
         <ul className="hidden md:flex items-center gap-8">
-          {navGroups.map((group) => (
+          {visibleNavGroups.map((group) => (
             <li key={group.label}>
               <DropdownMenu modal={false}>
                 <DropdownMenuTrigger className="group flex items-center gap-1 text-xs font-semibold text-black uppercase tracking-wide hover:text-[#0091C0] data-[state=open]:text-[#0091C0] transition-colors outline-none">
@@ -122,7 +132,7 @@ export default function Navbar() {
             </SheetHeader>
 
             <nav className="flex flex-col gap-6 p-4">
-              {navGroups.map((group) => (
+              {visibleNavGroups.map((group) => (
                 <div key={group.label} className="flex flex-col gap-3">
                   <p className="text-[11px] font-semibold text-gray-400 uppercase tracking-widest">
                     {group.label}
