@@ -3,6 +3,7 @@
 import Link from "next/link";
 import Image from "next/image";
 import { usePathname } from "next/navigation";
+import { ChevronDownIcon } from "lucide-react";
 import {
   Sheet,
   SheetTrigger,
@@ -10,17 +11,44 @@ import {
   SheetHeader,
   SheetClose,
 } from "./ui/sheet";
+import {
+  DropdownMenu,
+  DropdownMenuTrigger,
+  DropdownMenuContent,
+  DropdownMenuItem,
+} from "./ui/dropdown-menu";
 
-const navLinks = [
-  { label: "About the Congress", href: "/#about" },
-  { label: "Speakers", href: "/#speakers" },
-  { label: "Program", href: "/2nd-CM-CMMC-Program.pdf", external: true },
-  { label: "Registration", href: "/registration" },
-  { label: "Vote", href: "/vote" },
-  { label: "Live Attendance", href: "/live" },
-  { label: "Evaluation", href: "/evaluation" },
-  { label: "RCAC Website", href: "https://thearchdioceseofcebu.com/", external: true },
+type NavLink = {
+  label: string;
+  href: string;
+  external?: boolean;
+};
+
+type NavGroup = {
+  label: string;
+  links: NavLink[];
+};
+
+const navGroups: NavGroup[] = [
+  {
+    label: "About",
+    links: [
+      { label: "The Congress", href: "/#about" },
+      { label: "Speakers", href: "/#speakers" },
+      { label: "Program", href: "/2nd-CM-CMMC-Program.pdf", external: true },
+    ],
+  },
+  {
+    label: "Participate",
+    links: [
+      { label: "Vote", href: "/vote" },
+      { label: "Live Attendance", href: "/live" },
+      { label: "Evaluation", href: "/evaluation" },
+    ],
+  },
 ];
+
+const registrationLink: NavLink = { label: "Register", href: "/registration" };
 
 export default function Navbar() {
   const pathname = usePathname();
@@ -34,23 +62,43 @@ export default function Navbar() {
       <div className="max-w-full mx-auto px-4 sm:px-6 flex items-center justify-between h-[15vh]">
         {/* Logo */}
         <Link href="/" className="flex items-center gap-3 shrink-0 max-w-37.5">
-          {/* Placeholder logo */}
           <Image src="/logo.png" alt="CM-CMMC Logo" width={200} height={200} />
         </Link>
 
         {/* Nav links */}
-        <ul className="hidden md:flex items-center gap-6">
-          {navLinks.map((link) => (
-            <li key={link.label}>
-              <Link
-                href={link.href}
-                target={link.external ? "_blank" : undefined}
-                className="text-xs font-semibold text-black uppercase tracking-wide hover:text-[#0091C0] transition-colors"
-              >
-                {link.label}
-              </Link>
+        <ul className="hidden md:flex items-center gap-8">
+          {navGroups.map((group) => (
+            <li key={group.label}>
+              <DropdownMenu modal={false}>
+                <DropdownMenuTrigger className="group flex items-center gap-1 text-xs font-semibold text-black uppercase tracking-wide hover:text-[#0091C0] data-[state=open]:text-[#0091C0] transition-colors outline-none">
+                  {group.label}
+                  <ChevronDownIcon className="size-3.5 transition-transform group-data-[state=open]:rotate-180" />
+                </DropdownMenuTrigger>
+                <DropdownMenuContent align="start" sideOffset={12} className="min-w-48">
+                  {group.links.map((link) => (
+                    <DropdownMenuItem key={link.label} asChild>
+                      <Link
+                        href={link.href}
+                        target={link.external ? "_blank" : undefined}
+                        className="text-xs font-semibold uppercase tracking-wide cursor-pointer"
+                      >
+                        {link.label}
+                      </Link>
+                    </DropdownMenuItem>
+                  ))}
+                </DropdownMenuContent>
+              </DropdownMenu>
             </li>
           ))}
+
+          <li>
+            <Link
+              href={registrationLink.href}
+              className="inline-flex items-center rounded-full bg-[#0091C0] px-5 py-2.5 text-xs font-semibold text-white uppercase tracking-wide hover:bg-[#007aa3] transition-colors"
+            >
+              {registrationLink.label}
+            </Link>
+          </li>
         </ul>
 
         {/* Mobile menu (Sheet) */}
@@ -73,18 +121,34 @@ export default function Navbar() {
               </Link>
             </SheetHeader>
 
-            <nav className="flex flex-col gap-4 p-4">
-              {navLinks.map((link) => (
-                <SheetClose asChild key={link.label}>
-                  <Link
-                    href={link.href}
-                    target={link.external ? "_blank" : undefined}
-                    className="text-sm font-semibold text-black uppercase tracking-wide hover:text-[#0091C0] transition-colors"
-                  >
-                    {link.label}
-                  </Link>
-                </SheetClose>
+            <nav className="flex flex-col gap-6 p-4">
+              {navGroups.map((group) => (
+                <div key={group.label} className="flex flex-col gap-3">
+                  <p className="text-[11px] font-semibold text-gray-400 uppercase tracking-widest">
+                    {group.label}
+                  </p>
+                  {group.links.map((link) => (
+                    <SheetClose asChild key={link.label}>
+                      <Link
+                        href={link.href}
+                        target={link.external ? "_blank" : undefined}
+                        className="text-sm font-semibold text-black uppercase tracking-wide hover:text-[#0091C0] transition-colors"
+                      >
+                        {link.label}
+                      </Link>
+                    </SheetClose>
+                  ))}
+                </div>
               ))}
+
+              <SheetClose asChild>
+                <Link
+                  href={registrationLink.href}
+                  className="inline-flex justify-center rounded-full bg-[#0091C0] px-5 py-3 text-sm font-semibold text-white uppercase tracking-wide hover:bg-[#007aa3] transition-colors"
+                >
+                  {registrationLink.label}
+                </Link>
+              </SheetClose>
             </nav>
           </SheetContent>
         </Sheet>

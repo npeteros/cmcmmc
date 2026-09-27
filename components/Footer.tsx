@@ -46,6 +46,13 @@ export default function Footer() {
           CADComM Office, IEC Tower, Archbishop&apos;s Residence Compound, D. Jakosalem St., Cebu City, 6000, Philippines 
         </p>
         <p className="text-[12px] text-white">thearchdioceseofcebu@gmail.com</p>
+        <Link
+          href="https://thearchdioceseofcebu.com/"
+          target="_blank"
+          className="text-[12px] text-white underline underline-offset-2 hover:text-[#0091C0] transition-colors"
+        >
+          thearchdioceseofcebu.com
+        </Link>
 
         {/* Social icons */}
         <div className="flex items-center gap-3 mt-2">
