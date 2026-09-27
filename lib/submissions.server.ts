@@ -22,6 +22,7 @@ type SubmissionRow = {
   id: string;
   submitted_at: string;
   status: Submission["status"];
+  source: Submission["source"] | null;
   affiliation_type: Submission["affiliationType"];
   title: string;
   first_name: string;
@@ -30,8 +31,8 @@ type SubmissionRow = {
   congregation: string;
   email: string;
   mobile: string;
-  complete_address: string;
-  shirt_size: string;
+  complete_address: string | null;
+  shirt_size: string | null;
   organization_name: string;
   archdiocese: string;
   archdiocese_other: string | null;
@@ -52,8 +53,8 @@ type SubmissionRow = {
   accommodation: Submission["accommodation"];
   payment_mode: Submission["paymentMode"];
   transaction_number: string | null;
-  id_upload_name: string;
-  payment_proof_name: string;
+  id_upload_name: string | null;
+  payment_proof_name: string | null;
   id_upload_path: string | null;
   payment_proof_path: string | null;
   invoice_name: string;
@@ -104,6 +105,7 @@ function mapRowToSubmission(row: SubmissionRow): Submission {
     id: row.id,
     submittedAt: row.submitted_at,
     status: row.status,
+    source: row.source ?? "online",
     affiliationType: row.affiliation_type,
     title: row.title,
     firstName: row.first_name,
@@ -112,8 +114,8 @@ function mapRowToSubmission(row: SubmissionRow): Submission {
     congregation: row.congregation,
     email: row.email,
     mobile: row.mobile,
-    completeAddress: row.complete_address,
-    shirtSize: row.shirt_size,
+    completeAddress: row.complete_address ?? "",
+    shirtSize: row.shirt_size ?? "",
     organizationName: row.organization_name,
     archdiocese: row.archdiocese,
     archdioceseOther: row.archdiocese_other ?? "",
@@ -134,8 +136,8 @@ function mapRowToSubmission(row: SubmissionRow): Submission {
     accommodation: row.accommodation,
     paymentMode: row.payment_mode,
     transactionNumber: row.transaction_number ?? "",
-    idUploadName: row.id_upload_name,
-    paymentProofName: row.payment_proof_name,
+    idUploadName: row.id_upload_name ?? "",
+    paymentProofName: row.payment_proof_name ?? "",
     idUploadPath: row.id_upload_path ?? undefined,
     paymentProofPath: row.payment_proof_path ?? undefined,
     invoiceName: row.invoice_name,
@@ -261,10 +263,6 @@ export async function getBreakoutSessionCounts(): Promise<BreakoutSessionCounts>
     }
   });
 
-  console.log("Day 1 Counts: ", day1Counts);
-  console.log("Day 2 Counts: ", day2Counts);
-  console.log("Session Cap: ", SESSION_CAP);
-
   return {
     day1Counts,
     day2Counts,
@@ -274,11 +272,54 @@ export async function getBreakoutSessionCounts(): Promise<BreakoutSessionCounts>
   };
 }
 
+export type SessionAvailabilityResult =
+  | { ok: true }
+  | {
+      ok: false;
+      reason: "day1_full" | "day2_full" | "accommodation_full";
+      counts: BreakoutSessionCounts;
+    };
+
+export const SESSION_AVAILABILITY_MESSAGES: Record<
+  Exclude<SessionAvailabilityResult, { ok: true }>["reason"],
+  string
+> = {
+  day1_full: "Selected Day 1 breakout session is full.",
+  day2_full: "Selected Day 2 breakout session is full.",
+  accommodation_full: "Accommodation slots are already full.",
+};
+
+export async function checkSessionAvailability(selection: {
+  day1Session: string;
+  day2Session: string;
+  accommodation: Submission["accommodation"];
+}): Promise<SessionAvailabilityResult> {
+  const counts = await getBreakoutSessionCounts();
+
+  if ((counts.day1Counts[selection.day1Session] ?? 0) >= counts.limit) {
+    return { ok: false, reason: "day1_full", counts };
+  }
+
+  if ((counts.day2Counts[selection.day2Session] ?? 0) >= counts.limit) {
+    return { ok: false, reason: "day2_full", counts };
+  }
+
+  if (
+    selection.accommodation === "avail" &&
+    counts.accommodationCount >= counts.accommodationLimit
+  ) {
+    return { ok: false, reason: "accommodation_full", counts };
+  }
+
+  return { ok: true };
+}
+
 export async function createSubmissionCsv(submissions: Submission[]) {
   const header = [
     "ID",
     "Submitted At",
     "Status",
+    "Source",
     "Title",
     "First Name",
     "Middle Name",
@@ -330,6 +371,7 @@ export async function createSubmissionCsv(submissions: Submission[]) {
           timeZone: "Asia/Manila",
         }).format(new Date(submission.submittedAt)),
         submission.status,
+        submission.source === "walk_in" ? "Walk-in" : "Online",
         submission.title,
         submission.firstName,
         submission.middleName,
@@ -408,6 +450,7 @@ export type ListSubmissionsPageParams = {
   query?: string;
   affiliation?: Submission["affiliationType"] | "all";
   paymentMode?: Submission["paymentMode"] | "all";
+  source?: Submission["source"] | "all";
   sortKey?: SubmissionSortKey;
   sortDir?: "asc" | "desc";
 };
@@ -467,7 +510,10 @@ function filterMockSubmissions(params: ListSubmissionsPageParams): Submission[] 
     const matchesPayment =
       !params.paymentMode || params.paymentMode === "all" || submission.paymentMode === params.paymentMode;
 
-    return matchesQuery && matchesAffiliation && matchesPayment;
+    const matchesSource =
+      !params.source || params.source === "all" || submission.source === params.source;
+
+    return matchesQuery && matchesAffiliation && matchesPayment && matchesSource;
   });
 }
 
@@ -501,6 +547,10 @@ export async function listSubmissionsPage(
 
   if (params.paymentMode && params.paymentMode !== "all") {
     queryBuilder = queryBuilder.eq("payment_mode", params.paymentMode);
+  }
+
+  if (params.source && params.source !== "all") {
+    queryBuilder = queryBuilder.eq("source", params.source);
   }
 
   const trimmedQuery = (params.query ?? "").trim();
@@ -606,6 +656,115 @@ export async function getSubmissionFileUrl(storagePath?: string) {
     .data.publicUrl;
 }
 
+function buildDetailsRow(input: RegistrationSubmissionInput) {
+  return {
+    affiliation_type: input.affiliationType,
+    title: input.title,
+    first_name: input.firstName,
+    middle_name: input.middleName,
+    surname: input.surname,
+    congregation: input.congregation,
+    email: input.email,
+    mobile: input.mobile,
+    complete_address: input.completeAddress,
+    shirt_size: input.shirtSize,
+    organization_name: input.organizationName,
+    archdiocese: input.archdiocese,
+    archdiocese_other: input.archdioceseOther,
+    parish_name: input.parishName,
+    parish_address: input.parishAddress,
+    role_in_ministry: input.roleInMinistry,
+    role_in_ministry_other: input.roleInMinistryOther,
+    province: input.province,
+    school_name: input.schoolName,
+    school_address: input.schoolAddress,
+    designation: input.designation,
+    designation_other: input.designationOther,
+    company_organization: input.companyOrganization,
+    company_address: input.companyAddress,
+    position_designation: input.positionDesignation,
+    day1_session: input.day1Session,
+    day2_session: input.day2Session,
+    accommodation: input.accommodation,
+    payment_mode: input.paymentMode,
+    transaction_number: input.transactionNumber,
+  } satisfies Partial<SubmissionRow>;
+}
+
+export type WalkInSubmissionInput = {
+  title: string;
+  firstName: string;
+  middleName: string;
+  surname: string;
+  email: string;
+  mobile: string;
+  archdiocese: string;
+  archdioceseOther: string;
+  parishName: string;
+  parishAddress: string;
+  organizationName: string;
+  day1Session: string;
+  day2Session: string;
+};
+
+// Walk-ins register as parish representatives, pay cash at the cashier and
+// stay Pending until an admin verifies them.
+export async function createWalkInSubmission(input: WalkInSubmissionInput) {
+  const cookieStore = await cookies();
+  const supabase = createClient(cookieStore);
+
+  if (!supabase) {
+    throw new Error("Supabase is not configured.");
+  }
+
+  const details = buildDetailsRow({
+    ...input,
+    affiliationType: "parish",
+    roleInMinistry: "",
+    roleInMinistryOther: "",
+    province: "",
+    schoolName: "",
+    schoolAddress: "",
+    designation: "",
+    designationOther: "",
+    companyOrganization: "",
+    companyAddress: "",
+    positionDesignation: "",
+    congregation: "",
+    completeAddress: "",
+    shirtSize: "",
+    accommodation: "self",
+    paymentMode: "Cash",
+    transactionNumber: "",
+  });
+
+  const row = {
+    ...details,
+    id: randomUUID(),
+    submitted_at: new Date().toISOString(),
+    status: "Pending" as const,
+    source: "walk_in" as const,
+    complete_address: null,
+    shirt_size: null,
+    id_upload_name: null,
+    id_upload_path: null,
+    payment_proof_name: null,
+    payment_proof_path: null,
+  } satisfies Partial<SubmissionRow>;
+
+  const { data, error } = await supabase
+    .from("submissions")
+    .insert(row)
+    .select("*")
+    .single();
+
+  if (error) {
+    throw new Error(error.message);
+  }
+
+  return mapRowToSubmission(data as SubmissionRow);
+}
+
 export async function createRegistrationSubmission(
   input: RegistrationSubmissionInput,
   files: {
@@ -658,36 +817,8 @@ export async function createRegistrationSubmission(
     id: submissionId,
     submitted_at: new Date().toISOString(),
     status: "Pending" as const,
-    affiliation_type: input.affiliationType,
-    title: input.title,
-    first_name: input.firstName,
-    middle_name: input.middleName,
-    surname: input.surname,
-    congregation: input.congregation,
-    email: input.email,
-    mobile: input.mobile,
-    complete_address: input.completeAddress,
-    shirt_size: input.shirtSize,
-    organization_name: input.organizationName,
-    archdiocese: input.archdiocese,
-    archdiocese_other: input.archdioceseOther,
-    parish_name: input.parishName,
-    parish_address: input.parishAddress,
-    role_in_ministry: input.roleInMinistry,
-    role_in_ministry_other: input.roleInMinistryOther,
-    province: input.province,
-    school_name: input.schoolName,
-    school_address: input.schoolAddress,
-    designation: input.designation,
-    designation_other: input.designationOther,
-    company_organization: input.companyOrganization,
-    company_address: input.companyAddress,
-    position_designation: input.positionDesignation,
-    day1_session: input.day1Session,
-    day2_session: input.day2Session,
-    accommodation: input.accommodation,
-    payment_mode: input.paymentMode,
-    transaction_number: input.transactionNumber,
+    source: "online" as const,
+    ...buildDetailsRow(input),
     id_upload_name: files.idUpload.name,
     payment_proof_name: files.paymentProof.name,
     id_upload_path: idUploadPath,
@@ -714,38 +845,7 @@ export async function updateSubmissionDetails(
   const cookieStore = await cookies();
   const supabase = createClient(cookieStore);
 
-  const row = {
-    affiliation_type: input.affiliationType,
-    title: input.title,
-    first_name: input.firstName,
-    middle_name: input.middleName,
-    surname: input.surname,
-    congregation: input.congregation,
-    email: input.email,
-    mobile: input.mobile,
-    complete_address: input.completeAddress,
-    shirt_size: input.shirtSize,
-    organization_name: input.organizationName,
-    archdiocese: input.archdiocese,
-    archdiocese_other: input.archdioceseOther,
-    parish_name: input.parishName,
-    parish_address: input.parishAddress,
-    role_in_ministry: input.roleInMinistry,
-    role_in_ministry_other: input.roleInMinistryOther,
-    province: input.province,
-    school_name: input.schoolName,
-    school_address: input.schoolAddress,
-    designation: input.designation,
-    designation_other: input.designationOther,
-    company_organization: input.companyOrganization,
-    company_address: input.companyAddress,
-    position_designation: input.positionDesignation,
-    day1_session: input.day1Session,
-    day2_session: input.day2Session,
-    accommodation: input.accommodation,
-    payment_mode: input.paymentMode,
-    transaction_number: input.transactionNumber,
-  } satisfies Partial<SubmissionRow>;
+  const row = buildDetailsRow(input);
 
   if (!supabase) {
     const submission = mockSubmissions.find((item) => item.id === id);

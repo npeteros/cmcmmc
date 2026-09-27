@@ -7,3 +7,8 @@ export function isRegistrationOpen(now: Date = new Date()) {
 
   return now < new Date(REGISTRATION_CUTOFF_UTC);
 }
+
+// The walk-in kiosk is only switched on during the event days.
+export function isWalkInOpen() {
+  return process.env.WALK_IN_OPEN === "true";
+}

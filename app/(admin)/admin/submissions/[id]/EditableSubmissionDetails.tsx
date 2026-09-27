@@ -9,6 +9,7 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import {
+  PAYMENT_MODES,
   formatSubmissionDate,
   getAffiliationLabel,
   getSubmissionDisplayName,
@@ -243,8 +244,11 @@ function EditFields({
               className={selectClassName}
               disabled={isPending}
             >
-              <option value="GCash">GCash</option>
-              <option value="BDO">BDO</option>
+              {PAYMENT_MODES.map((mode) => (
+                <option key={mode} value={mode}>
+                  {mode}
+                </option>
+              ))}
             </select>
           </Field>
           <Field label="Transaction number" htmlFor="transactionNumber">
@@ -500,7 +504,9 @@ export default function EditableSubmissionDetails({
           <p className="text-xs font-semibold uppercase tracking-[0.3em] text-[#2aadb5]">Submission detail</p>
           <h1 className="mt-3 text-3xl font-semibold text-[#1a2e5a]">{getSubmissionDisplayName(submission)}</h1>
           <p className="mt-2 text-sm text-slate-500">
-            {getAffiliationLabel(submission.affiliationType)} submission • {formatSubmissionDate(submission.submittedAt)}
+            {getAffiliationLabel(submission.affiliationType)} submission •{" "}
+            {submission.source === "walk_in" ? "Walk-in • " : ""}
+            {formatSubmissionDate(submission.submittedAt)}
           </p>
         </div>
         {!isEditing && (
@@ -560,7 +566,7 @@ export default function EditableSubmissionDetails({
         <div className="grid gap-4 md:grid-cols-2">
           <div className="rounded-xl border border-slate-200 bg-white p-4">
             <p className="text-xs font-semibold uppercase tracking-[0.2em] text-slate-400">Valid ID upload</p>
-            <p className="mt-2 text-sm font-medium text-slate-700 truncate">{submission.idUploadName}</p>
+            <p className="mt-2 text-sm font-medium text-slate-700 truncate">{submission.idUploadName || "—"}</p>
             {idUploadUrl ? (
               <a
                 className="mt-2 inline-block text-sm font-semibold text-[#2aadb5] hover:underline"
@@ -574,7 +580,7 @@ export default function EditableSubmissionDetails({
           </div>
           <div className="rounded-xl border border-slate-200 bg-white p-4">
             <p className="text-xs font-semibold uppercase tracking-[0.2em] text-slate-400">Payment proof</p>
-            <p className="mt-2 text-sm font-medium text-slate-700 truncate">{submission.paymentProofName}</p>
+            <p className="mt-2 text-sm font-medium text-slate-700 truncate">{submission.paymentProofName || "—"}</p>
             {paymentProofUrl ? (
               <a
                 className="mt-2 inline-block text-sm font-semibold text-[#2aadb5] hover:underline"

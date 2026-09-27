@@ -9,6 +9,7 @@ import { Input } from "@/components/ui/input";
 import DeleteSubmissionButton from "./DeleteSubmissionButton";
 import CopyGuestLinkButton from "./CopyGuestLinkButton";
 import {
+  PAYMENT_MODES,
   formatSubmissionDate,
   getAffiliationLabel,
   getSubmissionDisplayName,
@@ -19,6 +20,7 @@ import type { SubmissionSortKey, SubmissionStats } from "@/lib/submissions.serve
 
 type FilterValue = "all" | Submission["affiliationType"];
 type PaymentFilterValue = "all" | Submission["paymentMode"];
+type SourceFilterValue = "all" | Submission["source"];
 type SortDir = "asc" | "desc";
 
 type AdminDashboardProps = {
@@ -30,6 +32,7 @@ type AdminDashboardProps = {
   query: string;
   affiliation: FilterValue;
   paymentMode: PaymentFilterValue;
+  source: SourceFilterValue;
   sortKey: SubmissionSortKey;
   sortDir: SortDir;
 };
@@ -93,6 +96,7 @@ export default function AdminDashboard({
   query,
   affiliation,
   paymentMode,
+  source,
   sortKey,
   sortDir,
 }: AdminDashboardProps) {
@@ -111,6 +115,7 @@ export default function AdminDashboard({
     q?: string;
     affiliation?: FilterValue;
     payment?: PaymentFilterValue;
+    source?: SourceFilterValue;
     sort?: SubmissionSortKey;
     dir?: SortDir;
     page?: number;
@@ -119,6 +124,7 @@ export default function AdminDashboard({
     const nextQuery = overrides.q ?? query;
     const nextAffiliation = overrides.affiliation ?? affiliation;
     const nextPayment = overrides.payment ?? paymentMode;
+    const nextSource = overrides.source ?? source;
     const nextSort = overrides.sort ?? sortKey;
     const nextDir = overrides.dir ?? sortDir;
     const nextPage = overrides.page ?? page;
@@ -126,6 +132,7 @@ export default function AdminDashboard({
     if (nextQuery.trim().length > 0) params.set("q", nextQuery.trim());
     if (nextAffiliation !== "all") params.set("affiliation", nextAffiliation);
     if (nextPayment !== "all") params.set("payment", nextPayment);
+    if (nextSource !== "all") params.set("source", nextSource);
     if (nextSort !== "submitted") params.set("sort", nextSort);
     if (nextDir !== "desc") params.set("dir", nextDir);
     if (nextPage !== 1) params.set("page", String(nextPage));
@@ -186,7 +193,7 @@ export default function AdminDashboard({
           </div>
         </div>
 
-        <div className="mt-6 grid gap-3 lg:grid-cols-[1.4fr_0.8fr_0.8fr]">
+        <div className="mt-6 grid gap-3 lg:grid-cols-[1.4fr_0.8fr_0.8fr_0.8fr]">
           <Input
             placeholder="Search by name, email, or organization"
             value={queryInput}
@@ -208,8 +215,20 @@ export default function AdminDashboard({
             onChange={(event) => navigate({ payment: event.target.value as PaymentFilterValue, page: 1 })}
           >
             <option value="all">All payment modes</option>
-            <option value="GCash">GCash</option>
-            <option value="BDO">BDO</option>
+            {PAYMENT_MODES.map((mode) => (
+              <option key={mode} value={mode}>
+                {mode}
+              </option>
+            ))}
+          </select>
+          <select
+            className="h-10 rounded-md border border-input bg-background px-3 text-sm ring-offset-background transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2"
+            value={source}
+            onChange={(event) => navigate({ source: event.target.value as SourceFilterValue, page: 1 })}
+          >
+            <option value="all">All sources</option>
+            <option value="online">Online</option>
+            <option value="walk_in">Walk-in</option>
           </select>
         </div>
 
@@ -232,7 +251,14 @@ export default function AdminDashboard({
                   submissions.map((submission) => (
                     <tr key={submission.id} className="align-top">
                       <td className="px-4 py-4">
-                        <div className="font-semibold text-[#1a2e5a]">{getSubmissionDisplayName(submission)}</div>
+                        <div className="font-semibold text-[#1a2e5a]">
+                          {getSubmissionDisplayName(submission)}
+                          {submission.source === "walk_in" && (
+                            <span className="ml-2 inline-flex rounded-full border border-sky-200 bg-sky-50 px-2 py-0.5 text-xs font-semibold text-sky-700">
+                              Walk-in
+                            </span>
+                          )}
+                        </div>
                         <div className="mt-1 text-xs text-slate-500">{submission.id}</div>
                         <div className="mt-1 text-xs text-slate-500">{submission.email}</div>
                       </td>

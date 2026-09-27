@@ -6,7 +6,7 @@ import {
   listSubmissionsPage,
   type SubmissionSortKey,
 } from "@/lib/submissions.server";
-import type { Submission } from "@/lib/admin-submissions";
+import { PAYMENT_MODES, SUBMISSION_SOURCES, type Submission } from "@/lib/admin-submissions";
 
 export const metadata: Metadata = {
   title: "Admin Dashboard",
@@ -39,14 +39,16 @@ export default async function AdminPage({
   const affiliation =
     (["parish", "school", "neither"] as const).find((value) => value === affiliationParam) ?? "all";
   const paymentModeParam = firstValue(params.payment);
-  const paymentMode = (["GCash", "BDO"] as const).find((value) => value === paymentModeParam) ?? "all";
+  const paymentMode = PAYMENT_MODES.find((value) => value === paymentModeParam) ?? "all";
+  const sourceParam = firstValue(params.source);
+  const source = SUBMISSION_SOURCES.find((value) => value === sourceParam) ?? "all";
   const sortParam = firstValue(params.sort);
   const sortKey = SORT_KEYS.find((value) => value === sortParam) ?? "submitted";
   const sortDir = firstValue(params.dir) === "asc" ? "asc" : "desc";
   const pageSize = 25;
 
   const [{ submissions, total }, stats] = await Promise.all([
-    listSubmissionsPage({ page, pageSize, query, affiliation, paymentMode, sortKey, sortDir }),
+    listSubmissionsPage({ page, pageSize, query, affiliation, paymentMode, source, sortKey, sortDir }),
     getSubmissionStats(),
   ]);
 
@@ -67,6 +69,7 @@ export default async function AdminPage({
           query={query}
           affiliation={affiliation}
           paymentMode={paymentMode}
+          source={source}
           sortKey={sortKey}
           sortDir={sortDir}
         />

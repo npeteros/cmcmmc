@@ -2,10 +2,19 @@ export const SUBMISSION_STATUSES = ["Pending", "Verified", "Needs review"] as co
 
 export type SubmissionStatus = (typeof SUBMISSION_STATUSES)[number];
 
+export const SUBMISSION_SOURCES = ["online", "walk_in"] as const;
+
+export type SubmissionSource = (typeof SUBMISSION_SOURCES)[number];
+
+export const PAYMENT_MODES = ["GCash", "BDO", "Cash"] as const;
+
+export type PaymentMode = (typeof PAYMENT_MODES)[number];
+
 export type Submission = {
   id: string;
   submittedAt: string;
   status: SubmissionStatus;
+  source: SubmissionSource;
   affiliationType: "parish" | "school" | "neither";
   title: string;
   firstName: string;
@@ -34,7 +43,7 @@ export type Submission = {
   day1Session: string;
   day2Session: string;
   accommodation: "avail" | "self";
-  paymentMode: "GCash" | "BDO";
+  paymentMode: PaymentMode;
   transactionNumber: string;
   idUploadName: string;
   paymentProofName: string;
@@ -55,6 +64,7 @@ export const mockSubmissions: Submission[] = [
     id: "CMC-001",
     submittedAt: "2026-05-28T09:20:00+08:00",
     status: "Verified",
+    source: "online",
     affiliationType: "parish",
     title: "Rev. Fr.",
     firstName: "Albert",
@@ -100,6 +110,7 @@ export const mockSubmissions: Submission[] = [
     id: "CMC-002",
     submittedAt: "2026-05-28T11:45:00+08:00",
     status: "Pending",
+    source: "online",
     affiliationType: "school",
     title: "Ms.",
     firstName: "April",
@@ -145,6 +156,7 @@ export const mockSubmissions: Submission[] = [
     id: "CMC-003",
     submittedAt: "2026-05-29T14:05:00+08:00",
     status: "Needs review",
+    source: "online",
     affiliationType: "neither",
     title: "Mr.",
     firstName: "Aubry",

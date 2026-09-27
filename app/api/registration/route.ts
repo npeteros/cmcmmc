@@ -1,8 +1,9 @@
 import { NextResponse } from "next/server";
 
 import {
+  checkSessionAvailability,
   createRegistrationSubmission,
-  getBreakoutSessionCounts,
+  SESSION_AVAILABILITY_MESSAGES,
   type RegistrationSubmissionInput,
 } from "@/lib/submissions.server";
 import { isRegistrationOpen } from "@/lib/registration-status";
@@ -63,30 +64,11 @@ export async function POST(request: Request) {
       transactionNumber: getString(formData, "transaction_number"),
     };
 
-    const counts = await getBreakoutSessionCounts();
-    const day1Count = counts.day1Counts[payload.day1Session] ?? 0;
-    const day2Count = counts.day2Counts[payload.day2Session] ?? 0;
+    const availability = await checkSessionAvailability(payload);
 
-    if (day1Count >= counts.limit) {
+    if (!availability.ok) {
       return NextResponse.json(
-        { ok: false, error: "Selected Day 1 breakout session is full." },
-        { status: 409 },
-      );
-    }
-
-    if (day2Count >= counts.limit) {
-      return NextResponse.json(
-        { ok: false, error: "Selected Day 2 breakout session is full." },
-        { status: 409 },
-      );
-    }
-
-    if (
-      payload.accommodation === "avail" &&
-      counts.accommodationCount >= counts.accommodationLimit
-    ) {
-      return NextResponse.json(
-        { ok: false, error: "Accommodation slots are already full." },
+        { ok: false, error: SESSION_AVAILABILITY_MESSAGES[availability.reason] },
         { status: 409 },
       );
     }

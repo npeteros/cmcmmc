@@ -5,6 +5,7 @@ import { redirect } from "next/navigation";
 
 import { isAdminSessionActive } from "@/lib/auth/session";
 import {
+  PAYMENT_MODES,
   SUBMISSION_STATUSES,
   type SubmissionStatus,
   getSubmissionDisplayName,
@@ -144,7 +145,6 @@ export type UpdateSubmissionDetailsState = {
 
 const AFFILIATION_TYPES = ["parish", "school", "neither"] as const;
 const ACCOMMODATIONS = ["avail", "self"] as const;
-const PAYMENT_MODES = ["GCash", "BDO"] as const;
 
 function isAffiliationType(
   value: string,
