@@ -4,7 +4,11 @@ import { Info } from "lucide-react";
 import { useEffect, useRef, useState, useTransition } from "react";
 import { toast } from "sonner";
 
-import { getShirtSizeAdditionalFee } from "@/lib/registration-options";
+import {
+  getShirtSizeAdditionalFee,
+  day1Options,
+  day2Options,
+} from "@/lib/registration-options";
 import {
   AlertDialog,
   AlertDialogAction,
@@ -24,9 +28,7 @@ import {
 } from "@/components/ui/dialog";
 import {
   formatSubmissionDate,
-  getAffiliationLabel,
   getSubmissionDisplayName,
-  getSubmissionOrganization,
   type Submission,
 } from "@/lib/admin-submissions";
 import {
@@ -77,17 +79,31 @@ function AttendanceFieldRow({
   return (
     <div className="flex items-center justify-between gap-3 rounded-xl border border-slate-200 bg-slate-50 p-4">
       <div>
-        <p className="text-xs font-semibold uppercase tracking-[0.2em] text-slate-400">{label}</p>
+        <p className="text-xs font-semibold uppercase tracking-[0.2em] text-slate-400">
+          {label}
+        </p>
         <p className="mt-1 text-sm font-medium text-slate-700">
           {timestamp ? formatSubmissionDate(timestamp) : "Not yet checked in"}
         </p>
       </div>
       {timestamp ? (
-        <Button type="button" size="sm" variant="destructive" disabled={disabled} onClick={onRequestRevert}>
+        <Button
+          type="button"
+          size="sm"
+          variant="destructive"
+          disabled={disabled}
+          onClick={onRequestRevert}
+        >
           Revert
         </Button>
       ) : (
-        <Button type="button" size="sm" variant="outline" disabled={disabled} onClick={onMark}>
+        <Button
+          type="button"
+          size="sm"
+          variant="outline"
+          disabled={disabled}
+          onClick={onMark}
+        >
           Mark arrived
         </Button>
       )}
@@ -109,10 +125,16 @@ function KitReceivedRow({
   return (
     <div className="flex items-center justify-between gap-3 rounded-xl border border-slate-200 bg-slate-50 p-4">
       <div>
-        <p className="text-xs font-semibold uppercase tracking-[0.2em] text-slate-400">Kit Received</p>
-        <p className="mt-1 text-sm font-medium text-slate-700">{received ? "Yes" : "Not yet"}</p>
+        <p className="text-xs font-semibold uppercase tracking-[0.2em] text-slate-400">
+          Kit Received
+        </p>
+        <p className="mt-1 text-sm font-medium text-slate-700">
+          {received ? "Yes" : "Not yet"}
+        </p>
         {!received && !canReceive && (
-          <p className="mt-1 text-xs text-amber-600">Requires Day 1 check-in first.</p>
+          <p className="mt-1 text-xs text-amber-600">
+            Requires Day 1 check-in first.
+          </p>
         )}
       </div>
       <Button
@@ -145,7 +167,9 @@ function ShirtPaymentReceivedRow({
         <p className="text-xs font-semibold uppercase tracking-[0.2em] text-slate-400">
           Shirt Payment (Php {fee})
         </p>
-        <p className="mt-1 text-sm font-medium text-slate-700">{received ? "Yes" : "Not yet"}</p>
+        <p className="mt-1 text-sm font-medium text-slate-700">
+          {received ? "Yes" : "Not yet"}
+        </p>
       </div>
       <Button
         type="button"
@@ -160,7 +184,11 @@ function ShirtPaymentReceivedRow({
   );
 }
 
-export default function AttendanceScanner({ initialId }: { initialId?: string }) {
+export default function AttendanceScanner({
+  initialId,
+}: {
+  initialId?: string;
+}) {
   const [submission, setSubmission] = useState<Submission | null>(null);
   const [lookupError, setLookupError] = useState<string | null>(null);
   const [isLookupPending, startLookupTransition] = useTransition();
@@ -168,13 +196,17 @@ export default function AttendanceScanner({ initialId }: { initialId?: string })
   const [isMarkPending, startMarkTransition] = useTransition();
   const [isKitPending, startKitTransition] = useTransition();
   const [isShirtPaymentPending, startShirtPaymentTransition] = useTransition();
-  const [confirmTarget, setConfirmTarget] = useState<ConfirmTarget | null>(null);
+  const [confirmTarget, setConfirmTarget] = useState<ConfirmTarget | null>(
+    null,
+  );
   const lastScannedId = useRef<string | null>(null);
 
   function lookupSubmission(id: string) {
     startLookupTransition(async () => {
       try {
-        const response = await fetch(`/api/attendance/${encodeURIComponent(id)}`);
+        const response = await fetch(
+          `/api/attendance/${encodeURIComponent(id)}`,
+        );
         const result = await response.json();
 
         if (!result.ok) {
@@ -315,7 +347,10 @@ export default function AttendanceScanner({ initialId }: { initialId?: string })
       formData.set("id", id);
       formData.set("received", nextReceived ? "true" : "false");
 
-      const result = await markShirtPaymentReceivedAction({ status: "idle" }, formData);
+      const result = await markShirtPaymentReceivedAction(
+        { status: "idle" },
+        formData,
+      );
 
       if (result.status === "success") {
         toast.success(result.message ?? "Shirt payment status updated.");
@@ -363,17 +398,26 @@ export default function AttendanceScanner({ initialId }: { initialId?: string })
       <QrCameraScanner onDecode={handleDecode} />
 
       <section className="rounded-[2rem] border border-slate-200 bg-white p-6 shadow-sm">
-        {isLookupPending && <p className="text-sm text-slate-500">Looking up registrant…</p>}
+        {isLookupPending && (
+          <p className="text-sm text-slate-500">Looking up registrant…</p>
+        )}
 
-        {!isLookupPending && lookupError && <p className="text-sm text-red-600">{lookupError}</p>}
+        {!isLookupPending && lookupError && (
+          <p className="text-sm text-red-600">{lookupError}</p>
+        )}
 
         {!isLookupPending && !lookupError && !submission && (
-          <p className="text-sm text-slate-500">Scan a registrant&apos;s QR code to begin.</p>
+          <p className="text-sm text-slate-500">
+            Scan a registrant&apos;s QR code to begin.
+          </p>
         )}
 
         {!isLookupPending && !lookupError && submission && (
           <p className="text-sm text-slate-500">
-            Last scanned: <span className="font-semibold text-slate-700">{getSubmissionDisplayName(submission)}</span>
+            Last scanned:{" "}
+            <span className="font-semibold text-slate-700">
+              {getSubmissionDisplayName(submission)}
+            </span>
           </p>
         )}
       </section>
@@ -383,12 +427,10 @@ export default function AttendanceScanner({ initialId }: { initialId?: string })
           {submission && (
             <>
               <DialogHeader>
-                <DialogTitle>{getSubmissionDisplayName(submission)}</DialogTitle>
+                <DialogTitle>
+                  {getSubmissionDisplayName(submission)}
+                </DialogTitle>
               </DialogHeader>
-              <p className="text-sm text-slate-500">
-                {getAffiliationLabel(submission.affiliationType)} • {getSubmissionOrganization(submission)} •{" "}
-                {submission.status}
-              </p>
               <p className="mt-2 flex items-center gap-2 text-sm text-slate-500">
                 Shirt size:
                 <span
@@ -402,11 +444,34 @@ export default function AttendanceScanner({ initialId }: { initialId?: string })
                 </span>
               </p>
               {getShirtSizeAdditionalFee(submission.shirtSize) > 0 && (
-                <p className="mt-1 flex items-center gap-1 text-xs text-blue-600">
-                  <Info size={12} /> Size {submission.shirtSize} requires an additional payment of Php{" "}
+                <p className="flex items-center gap-1 text-xs text-blue-600">
+                  <Info size={12} /> Size {submission.shirtSize} requires an
+                  additional payment of Php{" "}
                   {getShirtSizeAdditionalFee(submission.shirtSize)}.
                 </p>
               )}
+              <p className="flex items-center gap-2 text-sm text-slate-500">
+                Accommodation
+                <span className="inline-flex rounded-full border px-2.5 py-1 text-xs font-semibold border-slate-200 bg-slate-100 text-slate-700">
+                  {submission.accommodation === "avail"
+                    ? "Needs accommodation"
+                    : "No accommodation needed"}
+                </span>
+              </p>
+              <p className="flex flex-col gap-2 text-sm text-slate-500">
+                Day 1 Breakout Session
+                <span className="inline-flex rounded-full border px-2.5 py-1 text-xs font-semibold border-slate-200 bg-slate-100 text-slate-700 w-fit">
+                  {day1Options.find((opt) => opt.value === submission.day1Session)
+                  ?.label ?? "Not selected"}
+                </span>
+              </p>
+              <p className="flex flex-col gap-2 text-sm text-slate-500">
+                Day 2 Breakout Session
+                <span className="inline-flex rounded-full border px-2.5 py-1 text-xs font-semibold border-slate-200 bg-slate-100 text-slate-700 w-fit">
+                  {day2Options.find((opt) => opt.value === submission.day2Session)
+                  ?.label ?? "Not selected"}
+                </span>
+              </p>
 
               <div className="mt-3 space-y-2">
                 {TIMESTAMP_FIELDS.map((field) => (
@@ -416,7 +481,13 @@ export default function AttendanceScanner({ initialId }: { initialId?: string })
                     timestamp={submission[field.key] as string | null}
                     disabled={isMarkPending}
                     onMark={() => handleMarkField(field.key)}
-                    onRequestRevert={() => setConfirmTarget({ type: "field", key: field.key, label: field.label })}
+                    onRequestRevert={() =>
+                      setConfirmTarget({
+                        type: "field",
+                        key: field.key,
+                        label: field.label,
+                      })
+                    }
                   />
                 ))}
                 <KitReceivedRow
@@ -466,7 +537,10 @@ export default function AttendanceScanner({ initialId }: { initialId?: string })
           </AlertDialogHeader>
           <AlertDialogFooter>
             <AlertDialogCancel>Cancel</AlertDialogCancel>
-            <AlertDialogAction variant="destructive" onClick={handleConfirmRevert}>
+            <AlertDialogAction
+              variant="destructive"
+              onClick={handleConfirmRevert}
+            >
               Revert
             </AlertDialogAction>
           </AlertDialogFooter>
