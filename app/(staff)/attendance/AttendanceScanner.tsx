@@ -63,6 +63,28 @@ function extractIdFromScan(text: string) {
   return segments[segments.length - 1] ?? trimmed;
 }
 
+function InfoRow({ label, children }: { label: string; children: React.ReactNode }) {
+  return (
+    <div className="grid grid-cols-[7.5rem_1fr] gap-3 px-4 py-3">
+      <dt className="text-sm text-slate-500">{label}</dt>
+      <dd className="text-sm font-medium text-slate-800">{children}</dd>
+    </div>
+  );
+}
+
+function SessionValue({ option }: { option?: { label: string; speaker: string } }) {
+  if (!option) return <>Not selected</>;
+
+  return (
+    <>
+      {option.label}
+      <span className="mt-0.5 block text-xs font-normal text-slate-500">
+        {option.speaker}
+      </span>
+    </>
+  );
+}
+
 function AttendanceFieldRow({
   label,
   timestamp,
@@ -431,47 +453,36 @@ export default function AttendanceScanner({
                   {getSubmissionDisplayName(submission)}
                 </DialogTitle>
               </DialogHeader>
-              <p className="mt-2 flex items-center gap-2 text-sm text-slate-500">
-                Shirt size:
-                <span
-                  className={`inline-flex rounded-full border px-2.5 py-1 text-xs font-semibold ${
-                    getShirtSizeAdditionalFee(submission.shirtSize) > 0
-                      ? "border-blue-200 bg-blue-50 text-blue-700"
-                      : "border-slate-200 bg-slate-100 text-slate-700"
-                  }`}
-                >
-                  {submission.shirtSize}
-                </span>
-              </p>
-              {getShirtSizeAdditionalFee(submission.shirtSize) > 0 && (
-                <p className="flex items-center gap-1 text-xs text-blue-600">
-                  <Info size={12} /> Size {submission.shirtSize} requires an
-                  additional payment of Php{" "}
-                  {getShirtSizeAdditionalFee(submission.shirtSize)}.
-                </p>
-              )}
-              <p className="flex items-center gap-2 text-sm text-slate-500">
-                Accommodation
-                <span className="inline-flex rounded-full border px-2.5 py-1 text-xs font-semibold border-slate-200 bg-slate-100 text-slate-700">
-                  {submission.accommodation === "avail"
-                    ? "Needs accommodation"
-                    : "No accommodation needed"}
-                </span>
-              </p>
-              <p className="flex flex-col gap-2 text-sm text-slate-500">
-                Day 1 Breakout Session
-                <span className="inline-flex rounded-full border px-2.5 py-1 text-xs font-semibold border-slate-200 bg-slate-100 text-slate-700 w-fit">
-                  {day1Options.find((opt) => opt.value === submission.day1Session)
-                  ?.label ?? "Not selected"}
-                </span>
-              </p>
-              <p className="flex flex-col gap-2 text-sm text-slate-500">
-                Day 2 Breakout Session
-                <span className="inline-flex rounded-full border px-2.5 py-1 text-xs font-semibold border-slate-200 bg-slate-100 text-slate-700 w-fit">
-                  {day2Options.find((opt) => opt.value === submission.day2Session)
-                  ?.label ?? "Not selected"}
-                </span>
-              </p>
+              <dl className="mt-2 divide-y divide-slate-200 rounded-xl border border-slate-200 bg-white">
+                <InfoRow label="Shirt size">
+                  <span className="flex flex-wrap items-center gap-2">
+                    {submission.shirtSize}
+                    {getShirtSizeAdditionalFee(submission.shirtSize) > 0 && (
+                      <span className="inline-flex items-center gap-1 rounded-md bg-amber-50 px-2 py-0.5 text-xs font-medium text-amber-700 ring-1 ring-amber-200">
+                        <Info size={12} />+ Php{" "}
+                        {getShirtSizeAdditionalFee(submission.shirtSize)} due
+                      </span>
+                    )}
+                  </span>
+                </InfoRow>
+                <InfoRow label="Accommodation">
+                  {submission.accommodation === "avail" ? (
+                    <span className="text-[#2aadb5]">Needed</span>
+                  ) : (
+                    "Not needed"
+                  )}
+                </InfoRow>
+                <InfoRow label="Day 1 session">
+                  <SessionValue
+                    option={day1Options.find((opt) => opt.value === submission.day1Session)}
+                  />
+                </InfoRow>
+                <InfoRow label="Day 2 session">
+                  <SessionValue
+                    option={day2Options.find((opt) => opt.value === submission.day2Session)}
+                  />
+                </InfoRow>
+              </dl>
 
               <div className="mt-3 space-y-2">
                 {TIMESTAMP_FIELDS.map((field) => (

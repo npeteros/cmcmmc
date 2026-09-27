@@ -64,8 +64,8 @@ export default function GuestRegistrationView({
         )}
 
         <div className="grid gap-4 md:grid-cols-2">
-          <DetailItem label="Affiliation" value={submission.affiliationLabel} />
-          <DetailItem label="Organization" value={submission.organization} />
+          <DetailItem label="Diocese" value={submission.diocese} />
+          <DetailItem label="Parish name" value={submission.parishName} />
           <DetailItem label="Shirt size" value={submission.shirtSize} />
           <DetailItem
             label="Accommodation"
