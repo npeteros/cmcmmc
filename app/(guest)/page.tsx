@@ -107,7 +107,6 @@ export default function Page() {
         <FirstCongress />
         <CTASection />
       </main>
-      <Footer />
     </>
   )
 }
