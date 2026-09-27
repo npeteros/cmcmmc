@@ -1,3 +1,6 @@
+import Link from "next/link";
+
+import { Button } from "@/components/ui/button";
 import { day1Options, day2Options } from "@/lib/registration-options";
 import type { GuestRegistrationView as GuestRegistrationViewType } from "@/lib/guest-submission-view";
 
@@ -29,8 +32,10 @@ function ArrivalStatus({ label, timestamp }: { label: string; timestamp: string 
 
 export default function GuestRegistrationView({
   submission,
+  evaluationHref,
 }: {
   submission: GuestRegistrationViewType;
+  evaluationHref?: string;
 }) {
   const day1Label = day1Options.find((option) => option.value === submission.day1Session)?.label ?? submission.day1Session;
   const day2Label = day2Options.find((option) => option.value === submission.day2Session)?.label ?? submission.day2Session;
@@ -45,6 +50,18 @@ export default function GuestRegistrationView({
             {submission.confirmed ? "Registration confirmed" : "Registration under review"}
           </p>
         </div>
+
+        {evaluationHref && (
+          <div className="flex flex-col gap-3 rounded-2xl border border-[#2aadb5]/30 bg-[#2aadb5]/5 p-5 sm:flex-row sm:items-center sm:justify-between">
+            <div>
+              <h2 className="text-lg font-semibold text-[#1a2e5a]">Evaluate the Congress</h2>
+              <p className="text-sm text-slate-600">Share your feedback to help us improve future events.</p>
+            </div>
+            <Button asChild>
+              <Link href={evaluationHref}>Answer evaluation</Link>
+            </Button>
+          </div>
+        )}
 
         <div className="grid gap-4 md:grid-cols-2">
           <DetailItem label="Affiliation" value={submission.affiliationLabel} />

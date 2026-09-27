@@ -18,6 +18,7 @@ const navLinks = [
   { label: "Registration", href: "/registration" },
   { label: "Vote", href: "/vote" },
   { label: "Live Attendance", href: "/live" },
+  { label: "Evaluation", href: "/evaluation" },
   { label: "RCAC Website", href: "https://thearchdioceseofcebu.com/", external: true },
 ];
 

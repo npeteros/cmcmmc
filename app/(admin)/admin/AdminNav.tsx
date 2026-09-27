@@ -8,6 +8,7 @@ import { cn } from "@/lib/utils";
 const NAV_LINKS = [
   { href: "/admin", label: "Submissions" },
   { href: "/admin/competition", label: "Competition" },
+  { href: "/admin/evaluations", label: "Evaluations" },
 ] as const;
 
 export default function AdminNav() {

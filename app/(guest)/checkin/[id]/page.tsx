@@ -1,6 +1,7 @@
 import { notFound, redirect } from "next/navigation";
 
 import { isStaffSessionActive } from "@/lib/auth/session";
+import { getEvaluationStatus } from "@/lib/evaluation.server";
 import { getSubmissionById } from "@/lib/submissions.server";
 import { toGuestView } from "@/lib/guest-submission-view";
 import GuestRegistrationView from "./GuestRegistrationView";
@@ -16,11 +17,23 @@ export default async function CheckinPage({ params }: CheckinPageProps) {
     redirect(`/attendance?id=${encodeURIComponent(id)}`);
   }
 
-  const submission = await getSubmissionById(id);
+  const [submission, evaluationStatus] = await Promise.all([
+    getSubmissionById(id),
+    getEvaluationStatus(),
+  ]);
 
   if (!submission) {
     notFound();
   }
 
-  return <GuestRegistrationView submission={toGuestView(submission)} />;
+  return (
+    <GuestRegistrationView
+      submission={toGuestView(submission)}
+      evaluationHref={
+        evaluationStatus.isAcceptingResponses
+          ? `/evaluation/${encodeURIComponent(submission.id)}`
+          : undefined
+      }
+    />
+  );
 }
