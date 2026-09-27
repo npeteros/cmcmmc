@@ -11,6 +11,9 @@ import {
   getSubmissionDisplayName,
 } from "@/lib/admin-submissions";
 import {
+  SESSION_AVAILABILITY_MESSAGES,
+  checkSessionAvailability,
+  createAdminSubmission,
   deleteSubmission,
   updateSubmissionDetails,
   updateSubmissionStatus,
@@ -168,33 +171,25 @@ function getString(formData: FormData, key: string) {
   return String(formData.get(key) ?? "").trim();
 }
 
-export async function updateSubmissionDetailsAction(
-  _previousState: UpdateSubmissionDetailsState,
-  formData: FormData,
-): Promise<UpdateSubmissionDetailsState> {
-  if (!(await isAdminSessionActive())) {
-    redirect("/login");
-  }
+type ParseSubmissionDetailsResult =
+  | { ok: true; input: RegistrationSubmissionInput }
+  | { ok: false; message: string };
 
-  const id = getString(formData, "id");
+function parseSubmissionDetailsForm(formData: FormData): ParseSubmissionDetailsResult {
   const affiliationType = getString(formData, "affiliationType");
   const accommodation = getString(formData, "accommodation");
   const paymentMode = getString(formData, "paymentMode");
 
-  if (!id) {
-    return { status: "error", message: "Missing submission ID." };
-  }
-
   if (!isAffiliationType(affiliationType)) {
-    return { status: "error", message: "Invalid affiliation type." };
+    return { ok: false, message: "Invalid affiliation type." };
   }
 
   if (!isAccommodation(accommodation)) {
-    return { status: "error", message: "Invalid accommodation option." };
+    return { ok: false, message: "Invalid accommodation option." };
   }
 
   if (!isPaymentMode(paymentMode)) {
-    return { status: "error", message: "Invalid payment mode." };
+    return { ok: false, message: "Invalid payment mode." };
   }
 
   const firstName = getString(formData, "firstName");
@@ -206,46 +201,70 @@ export async function updateSubmissionDetailsAction(
   const day2Session = getString(formData, "day2Session");
 
   if (!firstName || !surname || !email || !mobile || !shirtSize || !day1Session || !day2Session) {
-    return { status: "error", message: "Please fill in all required fields." };
+    return { ok: false, message: "Please fill in all required fields." };
   }
 
-  const input: RegistrationSubmissionInput = {
-    affiliationType,
-    archdiocese: getString(formData, "archdiocese"),
-    archdioceseOther: getString(formData, "archdioceseOther"),
-    parishName: getString(formData, "parishName"),
-    parishAddress: getString(formData, "parishAddress"),
-    organizationName: getString(formData, "organizationName"),
-    roleInMinistry: getString(formData, "roleInMinistry"),
-    roleInMinistryOther: getString(formData, "roleInMinistryOther"),
-    province: getString(formData, "province"),
-    schoolName: getString(formData, "schoolName"),
-    schoolAddress: getString(formData, "schoolAddress"),
-    designation: getString(formData, "designation"),
-    designationOther: getString(formData, "designationOther"),
-    companyOrganization: getString(formData, "companyOrganization"),
-    companyAddress: getString(formData, "companyAddress"),
-    positionDesignation: getString(formData, "positionDesignation"),
-    title: getString(formData, "title"),
-    firstName,
-    middleName: getString(formData, "middleName"),
-    surname,
-    congregation: getString(formData, "congregation"),
-    email,
-    mobile,
-    completeAddress: getString(formData, "completeAddress"),
-    shirtSize,
-    day1Session,
-    day2Session,
-    accommodation,
-    paymentMode,
-    transactionNumber: getString(formData, "transactionNumber"),
+  return {
+    ok: true,
+    input: {
+      affiliationType,
+      archdiocese: getString(formData, "archdiocese"),
+      archdioceseOther: getString(formData, "archdioceseOther"),
+      parishName: getString(formData, "parishName"),
+      parishAddress: getString(formData, "parishAddress"),
+      organizationName: getString(formData, "organizationName"),
+      roleInMinistry: getString(formData, "roleInMinistry"),
+      roleInMinistryOther: getString(formData, "roleInMinistryOther"),
+      province: getString(formData, "province"),
+      schoolName: getString(formData, "schoolName"),
+      schoolAddress: getString(formData, "schoolAddress"),
+      designation: getString(formData, "designation"),
+      designationOther: getString(formData, "designationOther"),
+      companyOrganization: getString(formData, "companyOrganization"),
+      companyAddress: getString(formData, "companyAddress"),
+      positionDesignation: getString(formData, "positionDesignation"),
+      title: getString(formData, "title"),
+      firstName,
+      middleName: getString(formData, "middleName"),
+      surname,
+      congregation: getString(formData, "congregation"),
+      email,
+      mobile,
+      completeAddress: getString(formData, "completeAddress"),
+      shirtSize,
+      day1Session,
+      day2Session,
+      accommodation,
+      paymentMode,
+      transactionNumber: getString(formData, "transactionNumber"),
+    },
   };
+}
+
+export async function updateSubmissionDetailsAction(
+  _previousState: UpdateSubmissionDetailsState,
+  formData: FormData,
+): Promise<UpdateSubmissionDetailsState> {
+  if (!(await isAdminSessionActive())) {
+    redirect("/login");
+  }
+
+  const id = getString(formData, "id");
+
+  if (!id) {
+    return { status: "error", message: "Missing submission ID." };
+  }
+
+  const parsed = parseSubmissionDetailsForm(formData);
+
+  if (!parsed.ok) {
+    return { status: "error", message: parsed.message };
+  }
 
   let updated;
 
   try {
-    updated = await updateSubmissionDetails(id, input);
+    updated = await updateSubmissionDetails(id, parsed.input);
   } catch {
     return { status: "error", message: "Failed to update submission. Please try again." };
   }
@@ -258,4 +277,43 @@ export async function updateSubmissionDetailsAction(
   revalidatePath(`/admin/submissions/${id}`);
 
   return { status: "success", message: "Submission details updated." };
+}
+
+export type CreateSubmissionState = {
+  status: "idle" | "success" | "error";
+  message?: string;
+  id?: string;
+};
+
+export async function createSubmissionAction(
+  _previousState: CreateSubmissionState,
+  formData: FormData,
+): Promise<CreateSubmissionState> {
+  if (!(await isAdminSessionActive())) {
+    redirect("/login");
+  }
+
+  const parsed = parseSubmissionDetailsForm(formData);
+
+  if (!parsed.ok) {
+    return { status: "error", message: parsed.message };
+  }
+
+  let created;
+
+  try {
+    const availability = await checkSessionAvailability(parsed.input);
+
+    if (!availability.ok) {
+      return { status: "error", message: SESSION_AVAILABILITY_MESSAGES[availability.reason] };
+    }
+
+    created = await createAdminSubmission(parsed.input);
+  } catch {
+    return { status: "error", message: "Failed to create submission. Please try again." };
+  }
+
+  revalidatePath("/admin");
+
+  return { status: "success", message: "Submission added.", id: created.id };
 }

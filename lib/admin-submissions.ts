@@ -2,7 +2,7 @@ export const SUBMISSION_STATUSES = ["Pending", "Verified", "Needs review"] as co
 
 export type SubmissionStatus = (typeof SUBMISSION_STATUSES)[number];
 
-export const SUBMISSION_SOURCES = ["online", "walk_in"] as const;
+export const SUBMISSION_SOURCES = ["online", "walk_in", "admin"] as const;
 
 export type SubmissionSource = (typeof SUBMISSION_SOURCES)[number];
 
@@ -234,6 +234,17 @@ export function getAffiliationLabel(affiliationType: Submission["affiliationType
       return "School";
     default:
       return "Unaffiliated";
+  }
+}
+
+export function getSourceLabel(source: SubmissionSource) {
+  switch (source) {
+    case "walk_in":
+      return "Walk-in";
+    case "admin":
+      return "Admin";
+    default:
+      return "Online";
   }
 }
 

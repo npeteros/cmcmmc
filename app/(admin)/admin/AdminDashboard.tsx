@@ -187,6 +187,9 @@ export default function AdminDashboard({
           </div>
 
           <div className="flex flex-wrap gap-3">
+            <Button asChild>
+              <Link href="/admin/submissions/new">Add entry</Link>
+            </Button>
             <Button asChild variant="outline">
               <Link href="/admin/export">Export CSV</Link>
             </Button>
@@ -229,6 +232,7 @@ export default function AdminDashboard({
             <option value="all">All sources</option>
             <option value="online">Online</option>
             <option value="walk_in">Walk-in</option>
+            <option value="admin">Admin</option>
           </select>
         </div>
 
@@ -256,6 +260,11 @@ export default function AdminDashboard({
                           {submission.source === "walk_in" && (
                             <span className="ml-2 inline-flex rounded-full border border-sky-200 bg-sky-50 px-2 py-0.5 text-xs font-semibold text-sky-700">
                               Walk-in
+                            </span>
+                          )}
+                          {submission.source === "admin" && (
+                            <span className="ml-2 inline-flex rounded-full border border-violet-200 bg-violet-50 px-2 py-0.5 text-xs font-semibold text-violet-700">
+                              Admin
                             </span>
                           )}
                         </div>

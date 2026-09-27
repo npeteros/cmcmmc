@@ -7,6 +7,7 @@ import {
   type Submission,
   type SubmissionStatus,
   getAffiliationLabel,
+  getSourceLabel,
   getSubmissionOrganization,
 } from "@/lib/admin-submissions";
 import {
@@ -371,7 +372,7 @@ export async function createSubmissionCsv(submissions: Submission[]) {
           timeZone: "Asia/Manila",
         }).format(new Date(submission.submittedAt)),
         submission.status,
-        submission.source === "walk_in" ? "Walk-in" : "Online",
+        getSourceLabel(submission.source),
         submission.title,
         submission.firstName,
         submission.middleName,
@@ -746,6 +747,41 @@ export async function createWalkInSubmission(input: WalkInSubmissionInput) {
     source: "walk_in" as const,
     complete_address: null,
     shirt_size: null,
+    id_upload_name: null,
+    id_upload_path: null,
+    payment_proof_name: null,
+    payment_proof_path: null,
+  } satisfies Partial<SubmissionRow>;
+
+  const { data, error } = await supabase
+    .from("submissions")
+    .insert(row)
+    .select("*")
+    .single();
+
+  if (error) {
+    throw new Error(error.message);
+  }
+
+  return mapRowToSubmission(data as SubmissionRow);
+}
+
+// Admin-added entries skip the ID and payment proof uploads and stay Pending
+// until an admin verifies them, same as walk-ins.
+export async function createAdminSubmission(input: RegistrationSubmissionInput) {
+  const cookieStore = await cookies();
+  const supabase = createClient(cookieStore);
+
+  if (!supabase) {
+    throw new Error("Supabase is not configured.");
+  }
+
+  const row = {
+    ...buildDetailsRow(input),
+    id: randomUUID(),
+    submitted_at: new Date().toISOString(),
+    status: "Pending" as const,
+    source: "admin" as const,
     id_upload_name: null,
     id_upload_path: null,
     payment_proof_name: null,
