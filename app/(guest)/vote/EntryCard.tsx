@@ -23,7 +23,7 @@ export default function EntryCard({
   const [isPlaying, setIsPlaying] = useState(false);
 
   return (
-    <div className="overflow-hidden rounded-2xl border border-slate-200 bg-white shadow-sm">
+    <div className="flex h-full flex-col overflow-hidden rounded-2xl border border-slate-200 bg-white shadow-sm">
       <div className="relative aspect-video w-full bg-slate-900">
         {isPlaying ? (
           <iframe
@@ -56,17 +56,21 @@ export default function EntryCard({
         </Badge>
       </div>
 
-      <div className="space-y-3 p-5">
+      <div className="flex flex-1 flex-col gap-3 p-5">
         <div>
           <h3 className="text-base font-semibold text-[#1a2e5a]">{entry.title}</h3>
           <p className="text-sm text-slate-500">{entry.participantName}</p>
         </div>
         {entry.description && <p className="text-sm text-slate-600">{entry.description}</p>}
-        <div className="flex items-center justify-between pt-1">
+        <div className="mt-auto flex items-center justify-between pt-3">
           <span className="text-sm font-semibold text-[#2aadb5]">
             {entry.voteCount} {entry.voteCount === 1 ? "vote" : "votes"}
           </span>
-          <Button size="sm" onClick={onVoteClick} disabled={!votingOpen}>
+          <Button
+            onClick={onVoteClick}
+            disabled={!votingOpen}
+            className="rounded-full bg-[#2aadb5] px-6 font-semibold text-white shadow-md hover:bg-[#22929a]"
+          >
             Vote
           </Button>
         </div>

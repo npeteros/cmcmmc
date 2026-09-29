@@ -29,6 +29,10 @@ function setVotedCookie() {
   document.cookie = `${VOTED_COOKIE}=1; path=/; max-age=${oneYear}; samesite=lax`;
 }
 
+function clearVotedCookie() {
+  document.cookie = `${VOTED_COOKIE}=; path=/; max-age=0; samesite=lax`;
+}
+
 const REASON_MESSAGES: Record<string, string> = {
   voting_closed: "Voting is currently closed.",
   entry_not_found: "This entry is no longer available.",
@@ -130,9 +134,22 @@ export default function VoteDialog({
         <DialogTitle>Vote for &quot;{entry.title}&quot;</DialogTitle>
 
         {step === "already-voted" && (
-          <DialogDescription>
-            You&apos;ve already voted in this competition. Only one vote is allowed per person. Thank you!
-          </DialogDescription>
+          <>
+            <DialogDescription>
+              You&apos;ve already voted in this competition. Only one vote is allowed per person. Thank you!
+            </DialogDescription>
+            <DialogFooter>
+              <Button
+                variant="outline"
+                onClick={() => {
+                  clearVotedCookie();
+                  setStep("email");
+                }}
+              >
+                Not you? Vote with a different email
+              </Button>
+            </DialogFooter>
+          </>
         )}
 
         {step === "email" && (
