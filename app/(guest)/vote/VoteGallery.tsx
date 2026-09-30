@@ -11,9 +11,11 @@ const POLL_INTERVAL_MS = 15_000;
 export default function VoteGallery({
   initialEntries,
   votingOpen,
+  hasVoted,
 }: {
   initialEntries: CompetitionEntryWithVotes[];
   votingOpen: boolean;
+  hasVoted: boolean;
 }) {
   const [entries, setEntries] = useState(initialEntries);
   const [activeEntryId, setActiveEntryId] = useState<string | null>(null);
@@ -74,7 +76,7 @@ export default function VoteGallery({
               setActiveEntryId(null);
             }
           }}
-          onVoted={refreshResults}
+          hasVoted={hasVoted}
         />
       )}
     </>
