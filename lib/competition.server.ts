@@ -8,6 +8,7 @@ import {
   type CompetitionEntry,
   type CompetitionEntryWithVotes,
   type EntryStatus,
+  type PublicCompetitionEntry,
 } from "@/lib/competition";
 import { createClient } from "@/lib/supabase.server";
 
@@ -83,21 +84,25 @@ export async function listCompetitionEntriesWithVotes(
     return entries.map((entry) => ({ ...entry, voteCount: 0 }));
   }
 
-  const { data, error } = await supabase.from("competition_votes").select("entry_id");
+  // Count per entry in the database (head-only, no rows returned). Fetching
+  // vote rows and tallying them here silently truncates at PostgREST's
+  // max-rows cap (1000 by default), zeroing out entries past the cutoff.
+  const withVotes = await Promise.all(
+    entries.map(async (entry) => {
+      const { count, error } = await supabase
+        .from("competition_votes")
+        .select("*", { count: "exact", head: true })
+        .eq("entry_id", entry.id);
 
-  if (error) {
-    throw new Error(error.message);
-  }
+      if (error) {
+        throw new Error(error.message);
+      }
 
-  const counts = new Map<string, number>();
-  (data ?? []).forEach((row) => {
-    const entryId = (row as { entry_id: string }).entry_id;
-    counts.set(entryId, (counts.get(entryId) ?? 0) + 1);
-  });
+      return { ...entry, voteCount: count ?? 0 };
+    }),
+  );
 
-  return entries
-    .map((entry) => ({ ...entry, voteCount: counts.get(entry.id) ?? 0 }))
-    .sort((a, b) => b.voteCount - a.voteCount);
+  return withVotes.sort((a, b) => b.voteCount - a.voteCount);
 }
 
 export async function getCompetitionEntryById(id: string): Promise<CompetitionEntry | null> {
@@ -279,4 +284,58 @@ export async function setVotingStatus(open: boolean): Promise<void> {
   if (error) {
     throw new Error(error.message);
   }
+}
+
+let mockShowVoteCounts = true;
+
+export async function getShowVoteCounts(): Promise<boolean> {
+  const cookieStore = await cookies();
+  const supabase = createClient(cookieStore);
+
+  if (!supabase) {
+    return mockShowVoteCounts;
+  }
+
+  const { data, error } = await supabase
+    .from("competition_settings")
+    .select("show_vote_counts")
+    .eq("id", true)
+    .maybeSingle();
+
+  if (error) {
+    throw new Error(error.message);
+  }
+
+  return (data as { show_vote_counts: boolean } | null)?.show_vote_counts ?? true;
+}
+
+export async function setShowVoteCounts(show: boolean): Promise<void> {
+  const cookieStore = await cookies();
+  const supabase = createClient(cookieStore);
+
+  if (!supabase) {
+    mockShowVoteCounts = show;
+    return;
+  }
+
+  const { error } = await supabase
+    .from("competition_settings")
+    .update({ show_vote_counts: show })
+    .eq("id", true);
+
+  if (error) {
+    throw new Error(error.message);
+  }
+}
+
+// Visible entries for guests. When vote counts are hidden, counts are stripped
+// server-side and entries keep their default (newest-first) order so the
+// ranking isn't leaked either.
+export async function listPublicCompetitionEntries(): Promise<PublicCompetitionEntry[]> {
+  if (!(await getShowVoteCounts())) {
+    const entries = await listCompetitionEntries();
+    return entries.map((entry) => ({ ...entry, voteCount: null }));
+  }
+
+  return listCompetitionEntriesWithVotes();
 }

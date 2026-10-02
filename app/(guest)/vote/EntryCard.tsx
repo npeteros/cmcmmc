@@ -6,7 +6,7 @@ import { Play } from "lucide-react";
 
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
-import type { CompetitionEntryWithVotes } from "@/lib/competition";
+import type { PublicCompetitionEntry } from "@/lib/competition";
 import { buildYoutubeEmbedUrl, buildYoutubeThumbnailUrl } from "@/lib/youtube";
 
 export default function EntryCard({
@@ -15,7 +15,7 @@ export default function EntryCard({
   votingOpen,
   onVoteClick,
 }: {
-  entry: CompetitionEntryWithVotes;
+  entry: PublicCompetitionEntry;
   rank: number;
   votingOpen: boolean;
   onVoteClick: () => void;
@@ -51,9 +51,11 @@ export default function EntryCard({
             </span>
           </button>
         )}
-        <Badge className="absolute top-3 left-3" variant="secondary">
-          #{rank}
-        </Badge>
+        {entry.voteCount !== null && (
+          <Badge className="absolute top-3 left-3" variant="secondary">
+            #{rank}
+          </Badge>
+        )}
       </div>
 
       <div className="flex flex-1 flex-col gap-3 p-5">
@@ -63,9 +65,13 @@ export default function EntryCard({
         </div>
         {entry.description && <p className="text-sm text-slate-600">{entry.description}</p>}
         <div className="mt-auto flex items-center justify-between pt-3">
-          <span className="text-sm font-semibold text-[#2aadb5]">
-            {entry.voteCount} {entry.voteCount === 1 ? "vote" : "votes"}
-          </span>
+          {entry.voteCount !== null ? (
+            <span className="text-sm font-semibold text-[#2aadb5]">
+              {entry.voteCount} {entry.voteCount === 1 ? "vote" : "votes"}
+            </span>
+          ) : (
+            <span />
+          )}
           <Button
             onClick={onVoteClick}
             disabled={!votingOpen}

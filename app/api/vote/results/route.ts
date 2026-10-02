@@ -1,8 +1,8 @@
 import { NextResponse } from "next/server";
 
-import { listCompetitionEntriesWithVotes } from "@/lib/competition.server";
+import { listPublicCompetitionEntries } from "@/lib/competition.server";
 
 export async function GET() {
-  const entries = await listCompetitionEntriesWithVotes();
+  const entries = await listPublicCompetitionEntries();
   return NextResponse.json({ ok: true, entries });
 }

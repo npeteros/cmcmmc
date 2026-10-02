@@ -16,6 +16,9 @@ export type CompetitionEntry = {
 
 export type CompetitionEntryWithVotes = CompetitionEntry & { voteCount: number };
 
+// Shape sent to guests; `voteCount` is null when an admin has hidden vote counts.
+export type PublicCompetitionEntry = CompetitionEntry & { voteCount: number | null };
+
 export const mockCompetitionEntries: CompetitionEntry[] = [
   {
     id: "ENTRY-001",

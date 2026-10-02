@@ -8,7 +8,7 @@ import {
   DialogFooter,
 } from "@/components/ui/dialog";
 import { Button } from "@/components/ui/button";
-import type { CompetitionEntryWithVotes } from "@/lib/competition";
+import type { PublicCompetitionEntry } from "@/lib/competition";
 
 export default function VoteDialog({
   entry,
@@ -16,7 +16,7 @@ export default function VoteDialog({
   onOpenChange,
   hasVoted,
 }: {
-  entry: CompetitionEntryWithVotes;
+  entry: PublicCompetitionEntry;
   open: boolean;
   onOpenChange: (open: boolean) => void;
   hasVoted: boolean;

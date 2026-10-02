@@ -2,7 +2,11 @@ import type { Metadata } from "next";
 import { cookies } from "next/headers";
 import { Suspense } from "react";
 
-import { getVotingStatus, listCompetitionEntriesWithVotes } from "@/lib/competition.server";
+import {
+  getShowVoteCounts,
+  getVotingStatus,
+  listPublicCompetitionEntries,
+} from "@/lib/competition.server";
 import VoteGallery from "./VoteGallery";
 import VoteStatusToast from "./VoteStatusToast";
 
@@ -12,9 +16,10 @@ export const metadata: Metadata = {
 };
 
 export default async function VotePage() {
-  const [entries, votingOpen, cookieStore] = await Promise.all([
-    listCompetitionEntriesWithVotes(),
+  const [entries, votingOpen, showVoteCounts, cookieStore] = await Promise.all([
+    listPublicCompetitionEntries(),
     getVotingStatus(),
+    getShowVoteCounts(),
     cookies(),
   ]);
 
@@ -37,6 +42,14 @@ export default async function VotePage() {
             <p className="mx-auto mt-4 max-w-md rounded-xl border border-amber-200 bg-amber-50 px-4 py-3 text-sm font-semibold text-amber-700">
               Voting is currently closed. Please check back later.
             </p>
+          )}
+          {!showVoteCounts && (
+            <div className="mx-auto mt-4 max-w-md rounded-xl border border-[#2aadb5]/30 bg-[#2aadb5]/10 px-4 py-3 text-sm text-[#1a2e5a]">
+              <p className="font-semibold">
+                The number of votes is now hidden to keep the excitement and suspense alive!
+              </p>
+              <p className="mt-1">Voting ends on October 2, 2026 (Friday) at 11:59 PM.</p>
+            </div>
           )}
         </div>
 

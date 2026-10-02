@@ -2,7 +2,7 @@
 
 import { useEffect, useRef, useState } from "react";
 
-import type { CompetitionEntryWithVotes } from "@/lib/competition";
+import type { PublicCompetitionEntry } from "@/lib/competition";
 import EntryCard from "./EntryCard";
 import VoteDialog from "./VoteDialog";
 
@@ -13,7 +13,7 @@ export default function VoteGallery({
   votingOpen,
   hasVoted,
 }: {
-  initialEntries: CompetitionEntryWithVotes[];
+  initialEntries: PublicCompetitionEntry[];
   votingOpen: boolean;
   hasVoted: boolean;
 }) {
@@ -24,7 +24,7 @@ export default function VoteGallery({
   async function refreshResults() {
     try {
       const response = await fetch("/api/vote/results");
-      const result = (await response.json()) as { ok: boolean; entries?: CompetitionEntryWithVotes[] };
+      const result = (await response.json()) as { ok: boolean; entries?: PublicCompetitionEntry[] };
 
       if (result.ok && result.entries) {
         setEntries(result.entries);

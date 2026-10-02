@@ -9,6 +9,7 @@ import type { EntryStatus } from "@/lib/competition";
 import {
   createCompetitionEntry,
   setCompetitionEntryStatus,
+  setShowVoteCounts,
   setVotingStatus,
   updateCompetitionEntry,
 } from "@/lib/competition.server";
@@ -154,4 +155,21 @@ export async function setVotingOpenAction(open: boolean): Promise<EntryFormState
   revalidatePath("/vote");
 
   return { status: "success", message: open ? "Voting is now open." : "Voting is now closed." };
+}
+
+export async function setShowVoteCountsAction(show: boolean): Promise<EntryFormState> {
+  if (!(await isAdminSessionActive())) {
+    redirect("/login");
+  }
+
+  try {
+    await setShowVoteCounts(show);
+  } catch {
+    return { status: "error", message: "Failed to update vote count visibility." };
+  }
+
+  revalidatePath("/admin/competition");
+  revalidatePath("/vote");
+
+  return { status: "success", message: show ? "Vote counts are now visible." : "Vote counts are now hidden." };
 }

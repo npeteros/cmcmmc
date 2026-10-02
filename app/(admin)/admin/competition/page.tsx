@@ -11,8 +11,13 @@ import {
   TableHeader,
   TableRow,
 } from "@/components/ui/table";
-import { getVotingStatus, listCompetitionEntriesWithVotes } from "@/lib/competition.server";
+import {
+  getShowVoteCounts,
+  getVotingStatus,
+  listCompetitionEntriesWithVotes,
+} from "@/lib/competition.server";
 import VotingStatusToggle from "./VotingStatusToggle";
+import VoteCountsVisibilityToggle from "./VoteCountsVisibilityToggle";
 import ToggleEntryVisibilityButton from "./ToggleEntryVisibilityButton";
 
 export const metadata: Metadata = {
@@ -21,9 +26,10 @@ export const metadata: Metadata = {
 };
 
 export default async function CompetitionAdminPage() {
-  const [entries, votingOpen] = await Promise.all([
+  const [entries, votingOpen, showVoteCounts] = await Promise.all([
     listCompetitionEntriesWithVotes({ includeHidden: true }),
     getVotingStatus(),
+    getShowVoteCounts(),
   ]);
 
   return (
@@ -38,8 +44,9 @@ export default async function CompetitionAdminPage() {
         </Button>
       </div>
 
-      <div className="mb-6">
+      <div className="mb-6 grid gap-4 md:grid-cols-2">
         <VotingStatusToggle votingOpen={votingOpen} />
+        <VoteCountsVisibilityToggle showVoteCounts={showVoteCounts} />
       </div>
 
       <section className="overflow-hidden rounded-2xl border border-slate-200 bg-white shadow-sm">
